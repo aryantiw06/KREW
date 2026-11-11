@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <rect width="48" height="48" rx="12" fill="#0B0B10"/>
+  <rect x="1" y="1" width="46" height="46" rx="11" stroke="#2C2C3E" stroke-width="2"/>
+  <!-- Film-frame perforations motif -->
+  <circle cx="8" cy="8" r="2" fill="#A855F7" fill-opacity="0.6"/>
+  <circle cx="8" cy="40" r="2" fill="#A855F7" fill-opacity="0.6"/>
+  <circle cx="40" cy="8" r="2" fill="#38BDF8" fill-opacity="0.6"/>
+  <circle cx="40" cy="40" r="2" fill="#38BDF8" fill-opacity="0.6"/>
+  <!-- Stylized K with connected creative nodes -->
+  <path d="M16 12V36" stroke="#F8FAFC" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M32 14L20 24L33 34" stroke="url(#krew-grad)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="32" cy="14" r="2.5" fill="#38BDF8"/>
+  <circle cx="33" cy="34" r="2.5" fill="#A855F7"/>
+  <circle cx="20" cy="24" r="2.5" fill="#C4B5FD"/>
+  <defs>
+    <linearGradient id="krew-grad" x1="20" y1="14" x2="33" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#38BDF8"/>
+      <stop offset="0.5" stop-color="#C4B5FD"/>
+      <stop offset="1" stop-color="#A855F7"/>
+    </linearGradient>
+  </defs>
+</svg>
