@@ -36,3 +36,4 @@ export interface ISpecialisedAgentContract {
    */
   validateInputContract(input: Record<string, any>): boolean;
 }
+

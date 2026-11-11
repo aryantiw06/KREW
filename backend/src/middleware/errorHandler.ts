@@ -15,3 +15,4 @@ export function errorHandler(
 
   return sendError(res, message, statusCode, process.env.NODE_ENV === 'development' ? err.stack : undefined);
 }
+

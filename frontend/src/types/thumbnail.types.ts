@@ -13,3 +13,4 @@ export interface ThumbnailConcept {
   variationName: string; // e.g. "Variant A: High Contrast Provocative"
   isSelected: boolean;
 }
+

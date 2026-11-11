@@ -47,3 +47,4 @@ export const SAMPLE_THUMBNAILS: ThumbnailConcept[] = [
     isSelected: false
   }
 ];
+

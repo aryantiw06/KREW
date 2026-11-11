@@ -70,3 +70,4 @@ export const SAMPLE_CLIPS: ClipSegment[] = [
     status: 'suggested'
   }
 ];
+

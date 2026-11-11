@@ -19,3 +19,4 @@ export interface ContentProject {
   clipsCount?: number;
   thumbnailCount?: number;
 }
+

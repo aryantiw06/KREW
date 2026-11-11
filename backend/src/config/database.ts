@@ -25,3 +25,4 @@ export async function connectDatabase(): Promise<boolean> {
 export function isDbConnected(): boolean {
   return mongoose.connection.readyState === 1;
 }
+

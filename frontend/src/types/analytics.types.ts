@@ -30,3 +30,4 @@ export interface ContentInsightItem {
   recommendation: string;
   potentialImpact: 'High' | 'Medium' | 'Breakthrough';
 }
+

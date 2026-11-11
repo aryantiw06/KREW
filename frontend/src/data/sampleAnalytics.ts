@@ -79,3 +79,4 @@ export const SAMPLE_PRODUCER_INSIGHTS: ContentInsightItem[] = [
     potentialImpact: 'Medium'
   }
 ];
+

@@ -121,3 +121,4 @@ The pre-event codebase establishes the complete interface contracts (`ISpecialis
 2. **Context-Aware Prompt Pipeline:** Plugs into `StrategyAgent` and `ScriptAgent` referencing `CreatorMemoryService`.
 3. **Visual Generation Engine:** Plugs into `VisualIntelligenceAgent` for thumbnail candidate rendering.
 4. **Agent Orchestration Loop:** Connects `orchestratorContract.ts` to execute sequential and parallel agent workflows with tool calling.
+

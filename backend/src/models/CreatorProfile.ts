@@ -59,3 +59,4 @@ const CreatorProfileSchema = new Schema<CreatorProfileDocument>(
 );
 
 export const CreatorProfileModel = model<CreatorProfileDocument>('CreatorProfile', CreatorProfileSchema);
+

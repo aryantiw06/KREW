@@ -86,3 +86,4 @@ export const KrewLogo: React.FC<KrewLogoProps> = ({
 
   return content;
 };
+

@@ -283,3 +283,4 @@ export const ClipIntelligencePage: React.FC = () => {
     </div>
   );
 };
+

@@ -39,3 +39,4 @@ export interface CreatorDnaProfile {
   memorySyncStatus: 'Initialized' | 'Syncing' | 'Live Memory Ready';
   updatedAt: string;
 }
+

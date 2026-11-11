@@ -5,3 +5,4 @@ export const agentRoutes = Router();
 
 agentRoutes.get('/', getAgents);
 agentRoutes.get('/:role/contract', getAgentContract);
+

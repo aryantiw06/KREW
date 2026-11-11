@@ -12,3 +12,4 @@ export const logger = {
     console.log(`[AGENT:${agentName.toUpperCase()}] [${new Date().toISOString()}] ${message}`, ...meta);
   }
 };
+

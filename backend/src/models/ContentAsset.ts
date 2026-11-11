@@ -28,3 +28,4 @@ const ContentAssetSchema = new Schema<ContentAssetDocument>(
 );
 
 export const ContentAssetModel = model<ContentAssetDocument>('ContentAsset', ContentAssetSchema);
+

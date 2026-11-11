@@ -28,3 +28,4 @@ export class ProducerAgentService implements ISpecialisedAgentContract {
 }
 
 export const producerAgentService = new ProducerAgentService();
+

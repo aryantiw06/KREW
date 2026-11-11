@@ -240,3 +240,4 @@ export const GrowthInsightsPage: React.FC = () => {
     </div>
   );
 };
+

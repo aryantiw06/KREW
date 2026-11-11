@@ -106,3 +106,4 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onInspect }) => {
     </Card>
   );
 };
+

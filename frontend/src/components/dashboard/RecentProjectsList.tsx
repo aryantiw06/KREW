@@ -89,3 +89,4 @@ export const RecentProjectsList: React.FC = () => {
     </Card>
   );
 };
+

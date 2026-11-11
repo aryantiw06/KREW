@@ -53,3 +53,4 @@ export function getCurrentUser(req: Request, res: Response) {
 
   return sendSuccess(res, { user: currentUser }, 'Current creator profile fetched');
 }
+

@@ -39,3 +39,4 @@ export interface ICreatorProfile {
   memorySyncStatus: string;
   updatedAt: Date;
 }
+

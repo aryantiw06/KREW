@@ -15,3 +15,4 @@ export interface ClipSegment {
   isApproved: boolean;
   status: 'suggested' | 'approved' | 'rejected' | 'rendering_pipeline';
 }
+

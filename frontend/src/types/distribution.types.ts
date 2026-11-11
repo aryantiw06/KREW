@@ -25,3 +25,4 @@ export interface DistributionCampaign {
     assignedRole: string;
   }[];
 }
+

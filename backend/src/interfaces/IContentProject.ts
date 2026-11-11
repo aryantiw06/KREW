@@ -14,3 +14,4 @@ export interface IContentProject {
   createdAt: Date;
   updatedAt: Date;
 }
+

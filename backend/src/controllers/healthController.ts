@@ -35,3 +35,4 @@ export function getHealth(req: Request, res: Response) {
 
   return sendSuccess(res, healthData, 'KREW Studio Backend is operational and healthy.');
 }
+

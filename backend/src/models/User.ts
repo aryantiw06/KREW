@@ -26,3 +26,4 @@ const UserSchema = new Schema<UserDocument>(
 );
 
 export const UserModel = model<UserDocument>('User', UserSchema);
+

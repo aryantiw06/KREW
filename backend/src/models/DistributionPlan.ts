@@ -32,3 +32,4 @@ const DistributionPlanSchema = new Schema<DistributionPlanDocument>(
 );
 
 export const DistributionPlanModel = model<DistributionPlanDocument>('DistributionPlan', DistributionPlanSchema);
+

@@ -68,3 +68,4 @@ export const SAMPLE_PROJECTS: ContentProject[] = [
     thumbnailCount: 4
   }
 ];
+

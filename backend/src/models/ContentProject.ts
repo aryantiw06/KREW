@@ -40,3 +40,4 @@ const ContentProjectSchema = new Schema<ContentProjectDocument>(
 );
 
 export const ContentProjectModel = model<ContentProjectDocument>('ContentProject', ContentProjectSchema);
+

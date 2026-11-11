@@ -60,3 +60,4 @@ export const SAMPLE_DISTRIBUTION_CAMPAIGN: DistributionCampaign = {
     { id: 'chk-6', task: 'Human Creator final sign-off and approval', completed: false, assignedRole: 'Creator (Star)' }
   ]
 };
+

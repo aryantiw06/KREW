@@ -38,3 +38,4 @@ export function getAgentContract(req: Request, res: Response) {
 
   return sendSuccess(res, contractInfo, `Contract specification for ${agent.cinematicTitle}`);
 }
+

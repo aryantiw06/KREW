@@ -99,3 +99,4 @@ export function updateProjectStatus(req: Request, res: Response) {
   projectsStore[projectIndex] = updated;
   return sendSuccess(res, updated, 'Project status updated');
 }
+

@@ -68,3 +68,4 @@ With KREW:
    What works as an intellectual debate on YouTube must be translated into an authoritative document carousel on LinkedIn and an aggressive cold-hook reel on Instagram. One idea, four native dialects.
 5. **Human-in-the-Loop Sovereignty.**
    Autonomous agents propose; the Star decides. No content leaves the studio without creator sign-off.
+

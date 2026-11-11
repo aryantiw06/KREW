@@ -72,3 +72,4 @@ The following capabilities are strictly reserved for implementation during the l
 - Direct social media OAuth integrations (YouTube Data API v3, Instagram Graph API, LinkedIn Community Management API).
 - Real-time voice cloning and automated video dubbing across multiple global languages while preserving the creator's emotional cadence.
 - Fine-tuned open-source local LLMs (Llama 3 / Mistral) for privacy-conscious offline video editing.
+
