@@ -30,7 +30,7 @@ export const DashboardPage: React.FC = () => {
             The Spotlight is Yours, {user?.name || 'Creator'}.
           </h1>
           <p className="text-xs sm:text-sm text-krew-text-secondary max-w-2xl leading-relaxed">
-            Your vision guides the production. Six specialised agents are standing by to research, write, cut, design, package, and optimize your next campaign.
+            Project counts and recent projects come from the backend. Agent execution and future AI capabilities are RESERVED FOR LIVE HACKATHON SPRINT.
           </p>
         </div>
 
@@ -80,7 +80,7 @@ export const DashboardPage: React.FC = () => {
               The Star Performs. The Crew Produces.
             </h5>
             <p className="text-xs text-krew-text-secondary leading-relaxed">
-              KREW flips the script on creator burnout. Instead of doing everything alone, you remain the creative Star while your autonomous agent workforce manages the timeline behind the scenes.
+              KREW keeps the creator in control. Agent execution and automated timeline management are RESERVED FOR LIVE HACKATHON SPRINT.
             </p>
           </Card>
         </div>

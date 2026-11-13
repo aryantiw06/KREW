@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '../common/Card';
 import { Badge } from '../common/Badge';
 import { Calendar, Clock, Youtube, Instagram, Linkedin, Facebook } from 'lucide-react';
+import { StatusPill } from '../common/StatusPill';
 
 export const UpcomingContentCalendar: React.FC = () => {
   const scheduleItems = [
@@ -41,6 +42,7 @@ export const UpcomingContentCalendar: React.FC = () => {
           <h4 className="font-display font-bold text-white text-base">
             Upcoming Distribution Slate
           </h4>
+          <StatusPill type="sample" label="Illustrative Schedule" />
           <p className="text-xs text-krew-text-secondary">
             Multi-platform campaign cadence prepared by The Publicist.
           </p>

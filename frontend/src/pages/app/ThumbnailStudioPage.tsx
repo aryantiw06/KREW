@@ -30,9 +30,10 @@ export const ThumbnailStudioPage: React.FC = () => {
     setThumbnails((prev) =>
       prev.map((t) => ({ ...t, isSelected: t.id === thumb.id }))
     );
+    localStorage.setItem('krew_thumbnail_concept_preference', thumb.id);
     showToast({
-      title: 'Active Artwork Concept Updated',
-      message: `${thumb.variationName} designated for YouTube & social distribution.`,
+      title: 'Concept Preference Saved Locally',
+      message: `${thumb.variationName} saved in this browser as an illustrative preference.`,
       type: 'success'
     });
   };
@@ -72,14 +73,14 @@ export const ThumbnailStudioPage: React.FC = () => {
             <span className="text-[10px] font-mono uppercase tracking-wider text-krew-text-muted">
               Chromatic Compliance
             </span>
-            <p className="text-xl font-bold font-display text-white mt-1">100% Brand Match</p>
+            <p className="text-xl font-bold font-display text-white mt-1">Illustrative concept</p>
             <p className="text-[11px] text-emerald-400 mt-0.5">Enforcing #A855F7 & Charcoal</p>
           </div>
           <div className="p-3 rounded-xl bg-krew-surface/60 border border-krew-border">
             <span className="text-[10px] font-mono uppercase tracking-wider text-krew-text-muted">
               Mobile OLED Readability
             </span>
-            <p className="text-xl font-bold font-display text-white mt-1">96 / 100 Score</p>
+            <p className="text-xl font-bold font-display text-white mt-1">Not measured</p>
             <p className="text-[11px] text-krew-cyan mt-0.5">High Contrast Headline</p>
           </div>
           <div className="p-3 rounded-xl bg-krew-surface/60 border border-krew-border">

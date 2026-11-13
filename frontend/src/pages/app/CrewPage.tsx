@@ -33,7 +33,7 @@ export const CrewPage: React.FC = () => {
             Meet the KREW
           </h1>
           <p className="text-xs sm:text-sm text-krew-text-secondary mt-1 max-w-2xl">
-            Six specialised autonomous agents, each mastering one phase of your production pipeline. Together, they form an intelligent crew working behind the scenes.
+            Six role contracts define responsibilities and input/output shapes. Availability is scaffolding only; execution and agent-to-agent communication are RESERVED FOR LIVE HACKATHON SPRINT.
           </p>
         </div>
 
@@ -42,7 +42,7 @@ export const CrewPage: React.FC = () => {
             6 Specialized Roles
           </Badge>
           <Badge variant="purple" size="sm">
-            Shared Memory Core
+            Contract Ready
           </Badge>
         </div>
       </div>

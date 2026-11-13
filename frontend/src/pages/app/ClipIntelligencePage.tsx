@@ -35,7 +35,7 @@ export const ClipIntelligencePage: React.FC = () => {
     );
     showToast({
       title: 'Clip Approved',
-      message: 'Handoff initiated to The Cinematographer for 9:16 thumbnail framing.',
+      message: 'Sample segment approval updated in this page session only; no agent handoff occurred.',
       type: 'success'
     });
   };
@@ -46,7 +46,7 @@ export const ClipIntelligencePage: React.FC = () => {
     );
     showToast({
       title: 'Clip Rejected',
-      message: 'Feedback logged to Creator DNA Memory Engine.',
+      message: 'Sample segment state updated in this page session only.',
       type: 'info'
     });
   };
@@ -67,13 +67,13 @@ export const ClipIntelligencePage: React.FC = () => {
             Clip Intelligence Desk
           </h1>
           <p className="text-xs sm:text-sm text-krew-text-secondary mt-1 max-w-2xl">
-            The Editor agent analyzes narrative momentum, speech cadence, and semantic punchlines within your master footage to excavate standalone viral moments.
+            Explore illustrative sample segments. Real video analysis and timestamp detection are RESERVED FOR LIVE HACKATHON SPRINT.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Badge variant="rose" size="sm">
-            4 Contextual Clips Identified
+            Sample segments
           </Badge>
           <StatusPill type="live_reserved" label="Live Sprint AI Detection" />
         </div>
@@ -204,7 +204,7 @@ export const ClipIntelligencePage: React.FC = () => {
               <div className="flex items-center justify-between text-xs font-mono">
                 <span className="text-krew-text-secondary flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Viral Potential Score</span>
+                  <span>Illustrative sample score (not measured)</span>
                 </span>
                 <span className="font-bold text-amber-400">
                   {selectedClip.viralPotentialScore}/100
@@ -217,7 +217,7 @@ export const ClipIntelligencePage: React.FC = () => {
                 />
               </div>
               <p className="text-[10px] text-krew-text-muted font-mono">
-                Evaluated against Creator DNA audience retention curves.
+                Placeholder sample value only; no retention analysis is performed.
               </p>
             </div>
 

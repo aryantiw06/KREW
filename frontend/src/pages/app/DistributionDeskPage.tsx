@@ -29,6 +29,7 @@ export const DistributionDeskPage: React.FC = () => {
   const [campaign, setCampaign] = useState(SAMPLE_DISTRIBUTION_CAMPAIGN);
   const [activePlatform, setActivePlatform] = useState<SocialPlatform>('YouTube');
   const [activeDraft, setActiveDraft] = useState<PlatformPostDraft>(campaign.posts['YouTube']);
+  const [draftSaved, setDraftSaved] = useState(false);
 
   const handlePlatformChange = (platform: SocialPlatform) => {
     setActivePlatform(platform);
@@ -43,9 +44,12 @@ export const DistributionDeskPage: React.FC = () => {
         [activePlatform]: activeDraft
       }
     }));
+    const drafts = JSON.parse(localStorage.getItem('krew_distribution_drafts') || '{}');
+    localStorage.setItem('krew_distribution_drafts', JSON.stringify({ ...drafts, [activePlatform]: activeDraft }));
+    setDraftSaved(true);
     showToast({
-      title: 'Platform Draft Saved',
-      message: `${activePlatform} copy and metadata successfully updated.`,
+      title: 'Draft Saved Locally',
+      message: `${activePlatform} draft saved in this browser only.`,
       type: 'success'
     });
   };
@@ -76,7 +80,7 @@ export const DistributionDeskPage: React.FC = () => {
               <Share2 className="w-3.5 h-3.5 text-emerald-400" />
               <span>THE PUBLICIST • MULTI-PLATFORM DISTRIBUTION</span>
             </span>
-            <StatusPill type="architected" label="Distribution Architecture" />
+            <StatusPill type="sample" label="Illustrative Draft Workspace" />
           </div>
           <h1 className="font-display font-bold text-3xl text-white tracking-tight">
             Distribution Desk
@@ -87,7 +91,7 @@ export const DistributionDeskPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <StatusPill type="live_reserved" label="Live Publishing APIs Reserved" />
+            <StatusPill type="live_reserved" label="Publishing Reserved for Live Hackathon Sprint" />
           <Button
             variant="primary"
             size="sm"
@@ -249,15 +253,9 @@ export const DistributionDeskPage: React.FC = () => {
               size="sm"
               className="w-full"
               leftIcon={<Send className="w-4 h-4" />}
-              onClick={() => {
-                showToast({
-                  title: 'Greenlight Scheduled',
-                  message: 'Human-in-the-loop approved. Staggered campaign locked in studio slate.',
-                  type: 'success'
-                });
-              }}
+              disabled
             >
-              Sign Off & Greenlight
+              Publishing RESERVED FOR LIVE HACKATHON SPRINT
             </Button>
           </Card>
         </div>

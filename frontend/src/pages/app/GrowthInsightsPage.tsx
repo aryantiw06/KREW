@@ -56,7 +56,7 @@ export const GrowthInsightsPage: React.FC = () => {
           <Badge variant="purple" size="sm">
             Self-Improving Loop Active
           </Badge>
-          <StatusPill type="live_reserved" label="Live Telemetry Reserved" />
+          <StatusPill type="sample" label="Illustrative Demo Analytics" />
         </div>
       </div>
 
@@ -230,9 +230,9 @@ export const GrowthInsightsPage: React.FC = () => {
               variant="outline"
               size="sm"
               className="w-full text-xs text-krew-lavender"
-              onClick={() => {}}
+              disabled
             >
-              Feed All Directives into DNA Core
+              Live analytics feedback RESERVED FOR LIVE HACKATHON SPRINT
             </Button>
           </Card>
         </div>

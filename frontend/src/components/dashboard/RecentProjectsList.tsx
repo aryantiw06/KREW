@@ -1,19 +1,23 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '../common/Card';
 import { Badge } from '../common/Badge';
 import { Button } from '../common/Button';
-import { SAMPLE_PROJECTS } from '../../data/sampleProjects';
+import { ContentProject } from '../../types/project.types';
+import { useAuth } from '../../contexts/AuthContext';
+import { projectService } from '../../services/projectService';
 import { formatDuration, formatDate } from '../../utils/formatters';
 import { Film, Clock, ArrowRight, Play, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const RecentProjectsList: React.FC = () => {
   const navigate = useNavigate();
+  const {user}=useAuth(); const [projects,setProjects]=useState<ContentProject[]>([]); const [loading,setLoading]=useState(true); const [error,setError]=useState('');
+  useEffect(()=>{if(!user?.token)return; projectService.list(user.token,{sort:'desc'}).then(r=>{if(!r.success||!r.data)throw new Error(r.message);setProjects(r.data.items.filter(p=>p.status!=='archived').slice(0,4));}).catch(e=>setError(e instanceof Error?e.message:'Unable to load recent projects')).finally(()=>setLoading(false));},[user?.token]);
 
   const statusBadges = {
     review_ready: <Badge variant="cyan" size="xs">Review Ready</Badge>,
     in_production: <Badge variant="purple" size="xs">In Production</Badge>,
-    draft: <Badge variant="neutral" size="xs">Strategy Draft</Badge>,
+    draft: <Badge variant="neutral" size="xs">Draft</Badge>,
     queued: <Badge variant="neutral" size="xs">Queued</Badge>,
     approved: <Badge variant="emerald" size="xs">Approved</Badge>,
     archived: <Badge variant="neutral" size="xs">Archived</Badge>
@@ -27,7 +31,7 @@ export const RecentProjectsList: React.FC = () => {
             Recent Studio Productions
           </h4>
           <p className="text-xs text-krew-text-secondary">
-            Master video projects coordinated across the KREW workforce.
+            Backend-saved projects; no agent processing is implied.
           </p>
         </div>
         <Button
@@ -41,7 +45,7 @@ export const RecentProjectsList: React.FC = () => {
       </div>
 
       <div className="space-y-3">
-        {SAMPLE_PROJECTS.map((project) => (
+        {loading ? <p className="text-sm text-krew-text-secondary">Loading projects…</p> : error ? <p role="alert" className="text-sm text-rose-300">{error}</p> : projects.length === 0 ? <p className="text-sm text-krew-text-secondary">No projects yet. Create a draft in Production Studio.</p> : projects.map((project) => (
           <div
             key={project.id}
             onClick={() => navigate('/production')}
@@ -73,16 +77,6 @@ export const RecentProjectsList: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-              {project.clipsCount !== undefined && project.clipsCount > 0 && (
-                <span className="text-[11px] font-mono bg-krew-card px-2.5 py-1 rounded-lg border border-krew-border text-krew-text-secondary">
-                  {project.clipsCount} Clips
-                </span>
-              )}
-              {project.thumbnailCount !== undefined && project.thumbnailCount > 0 && (
-                <span className="text-[11px] font-mono bg-krew-card px-2.5 py-1 rounded-lg border border-krew-border text-krew-text-secondary">
-                  {project.thumbnailCount} Art Concepts
-                </span>
-              )}
             </div>
           </div>
         ))}

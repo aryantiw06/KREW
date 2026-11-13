@@ -53,7 +53,7 @@ export const AgentWorkforceMini: React.FC = () => {
             </div>
 
             <Badge variant="outline" size="xs" className="shrink-0">
-              Standby
+              Contract Ready
             </Badge>
           </div>
         ))}

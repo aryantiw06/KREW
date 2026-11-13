@@ -18,24 +18,24 @@ export const AgentCollaborationDiagram: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-mono uppercase tracking-wider text-krew-lavender">
-              Multi-Agent Collaboration Architecture
+              Illustrative Collaboration Architecture
             </span>
             <Badge variant="cyan" size="xs">
-              Interactive Workflow
+              Contract Map · No Live Communication
             </Badge>
           </div>
           <h3 className="font-display text-xl sm:text-2xl font-bold text-white">
             How The KREW Collaborates Around The Star
           </h3>
           <p className="text-xs text-krew-text-secondary mt-1">
-            Click any production role to inspect its upstream inputs, downstream handoffs, and shared Creator DNA bindings.
+            Select a role to inspect illustrative contracts. Handoffs shown are planned; live agent communication is RESERVED FOR LIVE HACKATHON SPRINT.
           </p>
         </div>
 
         <div className="flex items-center gap-2 p-2 rounded-xl bg-krew-card border border-krew-border text-xs font-mono">
           <Dna className="w-4 h-4 text-krew-purple" />
           <span className="text-krew-text-primary">Shared Backbone:</span>
-          <span className="text-krew-lavender font-semibold">Creator DNA Engine</span>
+          <span className="text-krew-lavender font-semibold">Configured profile schema</span>
         </div>
       </div>
 

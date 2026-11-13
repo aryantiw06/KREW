@@ -22,19 +22,8 @@ export const SettingsPage: React.FC = () => {
   const { user } = useAuth();
   const { showToast } = useToast();
 
-  const [geminiApiKey, setGeminiApiKey] = useState('AIzaSy*******************************');
-  const [openAiKey, setOpenAiKey] = useState('');
-  const [anthropicKey, setAnthropicKey] = useState('');
   const [storageProvider, setStorageProvider] = useState('local');
 
-  const handleSaveApiKeys = (e: React.FormEvent) => {
-    e.preventDefault();
-    showToast({
-      title: 'Provider Keys Stored Locally',
-      message: 'Keys ready for live hackathon autonomous agent orchestration.',
-      type: 'success'
-    });
-  };
 
   return (
     <div className="space-y-8">
@@ -64,55 +53,17 @@ export const SettingsPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <Key className="w-5 h-5 text-krew-purple" />
               <h3 className="font-display text-lg font-bold text-white">
-                Live Sprint LLM Provider Config
+                AI Provider Connections
               </h3>
             </div>
-            <StatusPill type="live_reserved" label="Live Sprint Ready" />
+            <StatusPill type="live_reserved" label="Reserved for Live Hackathon Sprint" />
           </div>
 
           <p className="text-xs text-krew-text-secondary leading-relaxed">
-            These API keys will be used by the backend orchestrator during the 6-hour hackathon to power Gemini multimodal video analysis, script generation, and multi-agent coordination.
+            Provider integrations are not connected. Never enter API credentials here; AI provider connections are RESERVED FOR LIVE HACKATHON SPRINT.
           </p>
 
-          <form onSubmit={handleSaveApiKeys} className="space-y-4">
-            <Input
-              label="Google Gemini API Key (Primary Recommended)"
-              type="password"
-              value={geminiApiKey}
-              onChange={(e) => setGeminiApiKey(e.target.value)}
-              placeholder="AIzaSy..."
-              leftIcon={<Cpu className="w-4 h-4 text-krew-cyan" />}
-              hint="Powers Strategy, Video Intelligence, and Visual Agents."
-            />
-
-            <Input
-              label="OpenAI API Key (Secondary Optional)"
-              type="password"
-              value={openAiKey}
-              onChange={(e) => setOpenAiKey(e.target.value)}
-              placeholder="sk-proj-..."
-              leftIcon={<Key className="w-4 h-4 text-krew-text-muted" />}
-            />
-
-            <Input
-              label="Anthropic Claude API Key (Optional)"
-              type="password"
-              value={anthropicKey}
-              onChange={(e) => setAnthropicKey(e.target.value)}
-              placeholder="sk-ant-..."
-              leftIcon={<Key className="w-4 h-4 text-krew-text-muted" />}
-            />
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              leftIcon={<Save className="w-4 h-4" />}
-              className="w-full shadow-purple-glow"
-            >
-              Save Model Configuration
-            </Button>
-          </form>
+          <div className="space-y-3">{['Gemini', 'OpenAI', 'Anthropic'].map(provider => <div key={provider} className="flex justify-between rounded-xl bg-krew-surface border border-krew-border p-3"><span className="text-sm text-white">{provider}</span><Badge variant="neutral" size="xs">Not Connected</Badge></div>)}</div>
         </Card>
 
         {/* Card 2: Creator Studio Preferences */}
