@@ -1,124 +1,59 @@
-# KREW — Technical Architecture
+# KREW Architecture (Verified Foundation)
 
-This document details the software architecture, system topology, data flow, and integration contracts of **KREW** (*GeNarrative Clash 2026: Autonomous Creator Agents*).
+## System shape
 
----
-
-## 1. System Topology Overview
-
-```
-                                  +-----------------------------+
-                                  |     CREATOR (THE STAR)      |
-                                  |    UI / Executive Control   |
-                                  +--------------+--------------+
-                                                 |
-                                                 v
-+----------------------------------------------------------------------------------------------+
-|                                    FRONTEND (React + Vite)                                    |
-|                                                                                              |
-|  [Command Center]   [Creator DNA]   [Meet the KREW]   [Production Studio]   [Clip Intel]     |
-|  [Thumbnail Lab]    [Distribution]  [Growth Desk]     [Settings]            [Auth Suite]     |
-+----------------------------------------------+-----------------------------------------------+
-                                               |
-                                     REST API / JSON (v1)
-                                               |
-                                               v
-+----------------------------------------------------------------------------------------------+
-|                                     BACKEND (Node.js + Express)                              |
-|                                                                                              |
-|  [Config & Env]        [Request Logger]     [CORS & Helmet]     [Centralized Error Handler]  |
-|  [Auth Middleware]     [Validation Layer]   [Health Check]      [API v1 Router]              |
-|                                                                                              |
-|  +----------------------------------------------------------------------------------------+  |
-|  |                            CREATOR DNA MEMORY ENGINE (Backbone)                        |  |
-|  |   - Authentic Vocabulary Rules        - Brand Color Grading (#A855F7)                  |  |
-|  |   - Banned Words & Clichés            - Pacing & Cold Hook Directives                  |  |
-|  |   - Audience Demographics             - Multi-Platform Format Specs                    |  |
-|  +----------------------------------------------------------------------------------------+  |
-|                                                                                              |
-|  +----------------------------------------------------------------------------------------+  |
-|  |                       MULTI-AGENT ORCHESTRATION BUS (Contracts)                         |  |
-|  |                                                                                        |  |
-|  |   +-------------------+    +-------------------+    +-------------------------------+  |  |
-|  |   |   The Director    |--->|    The Writer     |--->|          The Editor           |  |  |
-|  |   |  (Strategy Agent) |    |   (Script Agent)  |    |   (Video Intelligence Agent)  |  |  |
-|  |   +-------------------+    +-------------------+    +---------------+---------------+  |  |
-|  |             ^                                                       |                  |  |
-|  |             |                                                       v                  |  |
-|  |   +---------+---------+    +-------------------+    +---------------+---------------+  |  |
-|  |   |   The Producer    |<---|   The Publicist   |<---|      The Cinematographer      |  |  |
-|  |   |  (Growth Intel)   |    | (Distribution Ag.)|    |   (Visual Intelligence Agent) |  |  |
-|  |   +-------------------+    +-------------------+    +-------------------------------+  |  |
-|  +----------------------------------------------------------------------------------------+  |
-+----------------------------------------------+-----------------------------------------------+
-                                               |
-                                        Mongoose ODM
-                                               |
-                                               v
-+----------------------------------------------------------------------------------------------+
-|                                  DATABASE (MongoDB Atlas)                                     |
-|                                                                                              |
-|  [Users]  [CreatorProfiles (DNA)]  [ContentProjects]  [ContentAssets]  [DistributionPlans]   |
-+----------------------------------------------------------------------------------------------+
+```text
+React 18 + TypeScript + Vite
+  ├─ Public pages and login/register
+  ├─ Protected studio routes and local illustrative workspaces
+  └─ Typed API clients
+       │ JSON /api/v1
+       ▼
+Express 4 + TypeScript
+  ├─ CORS, body parsing/sanitization, request logging, error responses
+  ├─ Demo session middleware
+  ├─ Auth, Creator DNA, project, agent scaffold, and health routes
+  └─ Controllers → services/models
+       ├─ MongoDB/Mongoose when connected
+       └─ process-local in-memory fallback (explicit, non-durable)
 ```
 
----
+## Frontend
 
-## 2. Frontend Architecture
+The frontend uses React Router layouts for the public site and protected studio. `AuthContext` restores a saved demo session by validating it with `/auth/me`; invalid sessions are removed. `CreatorDnaContext` loads/saves through its API service and caches a local copy for offline editing. Production Studio uses backend project endpoints. Dashboard project counts and recent projects are backend-derived. Other workspace data, including clips, thumbnail concepts, distribution drafts, calendar items, and growth charts, is illustrative or local browser state and is labeled accordingly.
 
-- **Framework:** React 18 with TypeScript and Vite bundler.
-- **Design Tokens:** Tailwind CSS configured with cinematic studio palette:
-  - Deep Black: `#0B0B10`
-  - Charcoal Surface: `#15151D`
-  - Studio Card: `#1F1F2C`
-  - Electric Purple (Primary Accent): `#A855F7`
-  - Lavender (Secondary Accent): `#C4B5FD`
-  - Electric Cyan (Status Highlight): `#38BDF8`
-  - Typography: Space Grotesk (Display Headings), Inter (Body UI), JetBrains Mono (Code/Telemetry).
-- **Navigation & Routing:** React Router v6 with layout boundary nesting:
-  - `PublicLayout`: Marketing landing page (`/`), authentication scaffolding (`/login`, `/signup`, `/forgot-password`).
-  - `AppLayout`: Persistent studio navigation drawer, top workspace banner, notifications drawer, command search (`⌘K`), and outlet container for all studio workspaces.
-- **Data Visualizations:** Recharts for retention curves, platform view comparisons, and audience velocity telemetry.
-- **Context Layer:**
-  - `AuthContext`: Manages creator session and credentials.
-  - `CreatorDnaContext`: Reactive store for Creator DNA memory, local persistence, and memory sync triggers.
-  - `ToastContext`: System-wide toast notification dispatcher.
+The UI uses Tailwind CSS, Lucide React, Recharts, and the existing dark cinematic KREW identity. Routes are unchanged.
 
----
+## Backend and API
 
-## 3. Backend Architecture
+`backend/src/app.ts` configures CORS, request parsers, body sanitization, request logging, `/health` aliases, the configured API prefix (default `/api/v1`), not-found response, and centralized errors. Controllers return JSON envelopes through `utils/apiResponse.ts`. Request logs contain method, path, status, and duration; they do not log request bodies, passwords, or authorization headers.
 
-- **Runtime:** Node.js v24+ with Express.js and TypeScript.
-- **Entrypoints:**
-  - `src/server.ts`: HTTP bootstrap with EADDRINUSE automatic port fallback (handles port 5000/5001 collisions).
-  - `src/app.ts`: Express application pipeline with CORS whitelist, JSON limit handling, request telemetry, and centralized error handling.
-- **Modular Route Structure:**
-  - `GET /health` / `GET /api/v1/health`: System health and hackathon 50/50 compliance metadata.
-  - `/api/v1/auth`: Authentication and session endpoints.
-  - `/api/v1/creator-dna`: Read, update, and sync endpoints for Creator DNA memory engine.
-  - `/api/v1/projects`: Project ingestion, retrieval, and pipeline stage updates.
-  - `/api/v1/agents`: Registry of all 6 specialised agents and contract inspector.
-- **Decoupled Persistence:**
-  - Graceful MongoDB connection handler: Connects to MongoDB Atlas if connection URI is provided; falls back to structured in-memory state during local evaluation.
+Routes:
 
----
+- `/api/v1/health`: service status and database persistence mode.
+- `/api/v1/auth`: register, login, current session, logout.
+- `/api/v1/creator-dna`: GET, PUT, sync metadata request, metadata read.
+- `/api/v1/projects`: list with `status`, `search`, `sort`; create; detail; PUT metadata; PATCH status; DELETE archive.
+- `/api/v1/agents`: scaffold registry and typed contract descriptions; no execution endpoint.
 
-## 4. Database Schema Design (Mongoose)
+The common response envelope is `{ success, message?, data?, timestamp }`. Errors return `{ success: false, message, timestamp }`.
 
-1. **User (`UserModel`)**: User identity, role (`creator_star`), email, handle, and avatar.
-2. **CreatorProfile (`CreatorProfileModel`)**: The Creator DNA document storing authentic vocabulary, banned phrases, tone parameters, brand colors, thumbnail styles, and guidelines.
-3. **ContentProject (`ContentProjectModel`)**: Content project entity storing master footage metadata, source duration, target platforms, active agents, and pipeline progress step (1-5).
-4. **ContentAsset (`ContentAssetModel`)**: Output assets including highlight clips, suggested hooks, transcript excerpts, thumbnail concepts, and social post drafts.
-5. **AgentDefinition (`AgentDefinitionModel`)**: System registry of the six agent identities, contracts, and capability manifests.
-6. **DistributionPlan (`DistributionPlanModel`)**: Multi-platform post schedules and human-in-the-loop sign-off checklists.
+## Authentication boundary
 
----
+Authentication is local **DEMO MODE**, not production-secure. Register/login validate input and return random bearer tokens held in an in-memory session map with an eight-hour expiry. Passwords are not hashed or persisted because the demo never stores or uses them after request validation. Sessions disappear on server restart. `/auth/me` validates the session; logout revokes it. There is no production identity provider or production JWT implementation.
 
-## 5. Live Sprint Integration Points (The Remaining 50%)
+## Persistence and models
 
-The pre-event codebase establishes the complete interface contracts (`ISpecialisedAgentContract`) and orchestration bus (`AgentOrchestrator`). During the live 6-hour hackathon sprint, the following components will be plugged into these existing interfaces:
-1. **Gemini 1.5 Pro / Flash Multimodal Client:** Plugs into `VideoIntelligenceAgent` (`src/services/videoIntelligence/editorAgentContract.ts`).
-2. **Context-Aware Prompt Pipeline:** Plugs into `StrategyAgent` and `ScriptAgent` referencing `CreatorMemoryService`.
-3. **Visual Generation Engine:** Plugs into `VisualIntelligenceAgent` for thumbnail candidate rendering.
-4. **Agent Orchestration Loop:** Connects `orchestratorContract.ts` to execute sequential and parallel agent workflows with tool calling.
+Mongoose models include User, CreatorProfile, ContentProject, ContentAsset, AgentDefinition, and DistributionPlan. Creator DNA and projects use MongoDB when connected. Without a configured/reachable MongoDB, those services use process-local memory and return `mode: in-memory`, `connected: false`, and `persistenceAcrossRestarts: false`. Data then disappears after restart. Demo sessions always remain process-local. In-memory data is not presented as durable database storage.
 
+Creator DNA validation covers identity, strings/arrays, nested audience/tone/vocabulary/story/visual fields, and hex color values. Saves increment profile version; sync only records a request timestamp and status. No agents are notified or run.
+
+Projects are creator-scoped and support draft, queued, in-production, review-ready, approved, and archived statuses. Creation defaults to `draft`, with no active agent assignments. Archive uses a soft status update.
+
+## 50/50 scope
+
+No LLM SDKs, provider calls, AI inference, prompt engineering, autonomous agent execution or messaging, real video analysis/viral scoring, AI image generation, or live publishing integrations are present. Agent contracts and interactions shown in the UI are architecture scaffolding. All future AI capabilities are **RESERVED FOR LIVE HACKATHON SPRINT**.
+
+## Local setup
+
+Use Node.js 18+ and npm 9+. Run `npm run install:all`, configure `backend/.env` from `.env.example`, then run `npm run dev:backend` and `npm run dev:frontend`. Root `npm run build` builds both packages. Frontend `npm run lint` is declared but requires ESLint to be installed in the frontend package.

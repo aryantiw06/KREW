@@ -1,75 +1,45 @@
-# KREW — Feature Roadmap & 50/50 Hackathon Boundary
+# KREW Feature Roadmap and 50/50 Boundary
 
-> **Hackathon:** GeNarrative Clash 2026  
-> **Track:** Autonomous Creator Agents — Content Strategy & Distribution  
-> **Development Rule:** Strict 50/50 Pre-Event vs Live Sprint Boundary
+## Current pre-event foundation
 
----
+Implemented and verified in the repository:
 
-## 1. Compliance Matrix
+- Preserved React/Vite application, cinematic design system, public/studio layouts, and existing routes.
+- Protected studio routes with session restoration and explicit local DEMO MODE sign-in/register/logout. Demo tokens are random, memory-only, expire after eight hours, and are not production authentication.
+- Backend health and API response/error infrastructure.
+- Creator DNA GET/PUT, input validation, MongoDB or explicit in-memory persistence, profile versioning, and sync-request metadata (no agent sync).
+- Project draft creation, creator-scoped listing with filter/search/sort, detail, metadata update, lifecycle status update, and soft archive.
+- Backend-backed dashboard project counts/recent projects.
+- Local illustrative interactions for clip review, thumbnail concept preference, and distribution draft copy. Publishing stays disabled.
+- Illustrative analytics/schedules clearly identified; Settings does not collect provider credentials.
 
-| Phase | Development Window | Status | Focus Areas |
-| :--- | :--- | :--- | :--- |
-| **Phase 1: Pre-Event Foundation** | Permitted before hackathon (50%) | **100% Complete** | UI/UX, Design System, Dashboard Workspaces, Navigation, Schemas, API Scaffolding, Documentation, GitHub Setup |
-| **Phase 2: Live Hackathon Sprint** | Live 6-hour event sprint (50%) | **Reserved for Sprint** | LLM Inference, Autonomous Agent Execution, Video Intelligence, Prompt Tuning, Tool Calling, Distribution Integrations |
-| **Phase 3: Post-Hackathon Vision** | Future Commercial Scope | **Planned** | Native YouTube/TikTok OAuth API Direct Publishing, Voice Cloning for Dubbing, Fine-Tuned Local Open Source Models |
+## Persistence and operating modes
 
----
+Set `MONGODB_URI` in `backend/.env` to enable Mongoose persistence for Creator DNA and projects. Without a reachable MongoDB, API responses explicitly identify process-local in-memory mode; data is lost on server restart. Demo sessions are always process-local. Browser localStorage is used for demo session restoration, the Creator DNA offline cache, and explicitly local workspace preferences/drafts. It is not a substitute for backend persistence.
 
-## 2. Phase 1: Pre-Event Foundation (Completed)
+## Reserved for live hackathon sprint
 
-All items below have been implemented, tested, and verified:
+The following are not implemented and must remain **RESERVED FOR LIVE HACKATHON SPRINT** until that phase:
 
-### Frontend & UI/UX (React + Vite + TypeScript + Tailwind)
-- [x] **Brand Identity & Design System:** Custom typographic KREW wordmark with film-frame node motif, electric purple `#A855F7`, lavender `#C4B5FD`, and electric cyan `#38BDF8` tokens.
-- [x] **Public Landing Page (9 Sections):** Hero, Bollywood crew analogy, the solo creator crisis, the 6-agent solution, interactive workflow, 6 technical USPs, product walkthrough, final CTA, and footer.
-- [x] **Command Center Dashboard:** Telemetry overview, lead production pipeline status, recent projects, agent workforce roster, and distribution schedule calendar.
-- [x] **Creator DNA Memory Engine Workspace:** Complete form suite for vocabulary rules, signature phrases, banned words, communication tone, brand colors, and memory synchronization triggers.
-- [x] **Meet the KREW Workspace:** Distinctive agent cards, interactive multi-agent collaboration diagram, upstream/downstream contract inspector modal.
-- [x] **Production Studio:** Master footage upload interface, project management table, status filters, and new production dispatch modal.
-- [x] **Clip Intelligence Desk (The Editor):** Video player simulation, interactive multi-track timeline, highlight segments, viral potential scores, hook angles, and approval buttons.
-- [x] **Thumbnail Studio (The Cinematographer):** 3 contrasting layout variations, OLED mobile contrast audit, brand chromatic compliance score, and aspect ratio selector.
-- [x] **Distribution Desk (The Publicist):** Platform-native tabs for YouTube, Instagram, LinkedIn, and Facebook with captions, hashtags, SEO keywords, and pre-flight checklist.
-- [x] **Growth Insights (The Producer):** Recharts velocity graph, platform efficiency comparison table, and continuous DNA feedback loop directives.
-- [x] **Authentication Scaffolding:** Sign In, Registration, Forgot Password pages, and user session context.
-- [x] **Settings & Integrations:** Workspace security controls and API key inputs for Gemini, OpenAI, and Anthropic.
+1. LLM SDK installation, provider credentials, API calls, inference, and prompt engineering.
+2. Autonomous Director/Writer/Editor/Cinematographer/Publicist/Producer execution or peer-to-peer communication.
+3. Real video/audio processing, timestamp extraction, retention analysis, or viral scoring.
+4. AI-generated thumbnail artwork or automated visual scoring.
+5. Direct social publishing, scheduling, OAuth integrations, and platform API calls.
+6. Production authentication, durable user registration, secure password hashing, and production-grade token/session management.
 
-### Backend & Scaffolding (Node.js + Express + TypeScript)
-- [x] **Express Application Architecture:** Modular controllers, routes, request logging, and centralized error handling.
-- [x] **Health Check Endpoint:** `/api/v1/health` returning system uptime, database status, and hackathon compliance metadata.
-- [x] **Mongoose Models & Schemas:** User, CreatorProfile, ContentProject, ContentAsset, AgentDefinition, and DistributionPlan.
-- [x] **Agent Service Interfaces:** Typed contracts (`ISpecialisedAgentContract`) and orchestration bus (`AgentOrchestrator`) ready for LLM integration.
-- [x] **Automatic Port Fallback:** Graceful port escalation (5000 -> 5001) for macOS AirPlay Receiver compatibility.
+## Install, run, and verify
 
----
+```sh
+npm run install:all
+# Set backend/.env from .env.example; optionally configure MONGODB_URI
+npm run dev:backend
+npm run dev:frontend
+npm run build
+```
 
-## 3. Phase 2: Live Hackathon 6-Hour Sprint (Reserved)
+`npm run build` builds frontend and backend. `npm run lint --prefix frontend` is declared; install/configure ESLint before expecting the command to run successfully.
 
-The following capabilities are strictly reserved for implementation during the live 6-hour hackathon sprint:
+## Next development phase
 
-1. **Hour 1: LLM Engine Integration & Gemini Client Binding**
-   - Connect Google Gemini 1.5 Pro / Flash API via `@google/genai` or Vertex AI SDK.
-   - Wire Gemini client into `backend/src/services/strategyAgent/directorAgentContract.ts`.
-2. **Hour 2: Creator DNA Prompt Engineering & Script Generation**
-   - Build system prompt generator incorporating vocabulary rules, banned words, and tone from `CreatorMemoryService`.
-   - Implement `WriterAgentService.executeAgentTask()` to generate live three-act scripts and 5 hook variations.
-3. **Hour 3: Multimodal Video Intelligence & Highlight Extraction**
-   - Implement Gemini 1.5 Pro multimodal video/audio parsing in `EditorAgentService`.
-   - Process uploaded video frames/audio transcripts to output real timestamped highlight segments with calculated viral scores.
-4. **Hour 4: Thumbnail Visual Intelligence & Layout Prompting**
-   - Implement `CinematographerAgentService.executeAgentTask()` with image generation models (Imagen / Stable Diffusion / DALL-E) to render real candidate thumbnails.
-5. **Hour 5: Distribution Copy Generation & Multi-Agent Handoff**
-   - Implement `PublicistAgentService` to auto-translate script outputs into platform-specific copy for YouTube, Instagram, LinkedIn, and Facebook.
-   - Enable peer-to-peer data handoffs across the `AgentOrchestrator` pipeline.
-6. **Hour 6: End-to-End Testing, Polish & Demo Video Recording**
-   - Validate full flow: Raw video upload -> Agent processing -> Final review & approval in UI.
-   - Record submission video demonstrating the autonomous AI crew in action.
-
----
-
-## 4. Phase 3: Post-Hackathon Vision
-
-- Direct social media OAuth integrations (YouTube Data API v3, Instagram Graph API, LinkedIn Community Management API).
-- Real-time voice cloning and automated video dubbing across multiple global languages while preserving the creator's emotional cadence.
-- Fine-tuned open-source local LLMs (Llama 3 / Mistral) for privacy-conscious offline video editing.
-
+Before live sprint work, complete routine reliability items: install and configure the project lint toolchain, add repeatable API integration tests for both MongoDB and in-memory modes, and validate UI flows against a fresh demo session. During the authorized live sprint, implement only the AI and publishing tasks allowed by event rules, with explicit human review and tests for each boundary.
