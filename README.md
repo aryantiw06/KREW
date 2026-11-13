@@ -20,7 +20,7 @@ Set `MONGODB_URI` in `backend/.env` to use MongoDB. When the database is connect
 - Node.js 18+ and npm 9+.
 - Install packages: `npm run install:all`.
 - Copy `.env.example` to `backend/.env` and set `MONGODB_URI` only if a MongoDB instance is available. Keep credentials out of source control; `.env` is ignored.
-- Optional frontend API URL: set `VITE_API_URL` in the frontend environment. Default: `http://localhost:5000/api/v1`.
+- Frontend API URL: `frontend/.env` sets `VITE_API_URL=http://localhost:5001/api/v1`. The API client uses the same default.
 
 Run the two servers in separate terminals:
 
@@ -29,7 +29,7 @@ npm run dev:backend
 npm run dev:frontend
 ```
 
-The API starts on port 5000 and falls back to the next port if occupied. Vite defaults to port 5173. Use `npm run build` at root (or `npm run build:frontend` / `npm run build:backend`) for production builds. Frontend also has `npm run lint`; ESLint must be installed/configured for that script to run.
+The API defaults to port 5001 (port 5000 is commonly occupied by macOS AirPlay Receiver) and falls back to the next port if occupied. CORS allows `http://localhost:5173`. Vite defaults to port 5173. Use `npm run build` at root (or `npm run build:frontend` / `npm run build:backend`) for production builds. Frontend also has `npm run lint`; ESLint must be installed/configured for that script to run.
 
 ## API overview
 

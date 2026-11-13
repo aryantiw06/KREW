@@ -13,7 +13,7 @@ export class ApiError extends Error {
   }
 }
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1').replace(/\/$/, '');
 const DEFAULT_TIMEOUT_MS = 15000;
 
 export interface ApiRequestOptions extends Omit<RequestInit, 'body'> {
