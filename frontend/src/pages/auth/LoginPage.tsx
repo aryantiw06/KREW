@@ -11,11 +11,10 @@ import { ArrowRight, Sparkles, Lock, Mail } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, error: authError, isLoading } = useAuth();
   const { showToast } = useToast();
-  const [email, setEmail] = useState('kabir@krew.studio');
-  const [password, setPassword] = useState('demo1234');
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,11 +22,8 @@ export const LoginPage: React.FC = () => {
       showToast({ title: 'Validation Error', message: 'Please enter both email and password.', type: 'error' });
       return;
     }
-    setIsLoading(true);
-    await login(email, password);
-    setIsLoading(false);
-    showToast({ title: 'Welcome to KREW', message: 'Signed in as Star Kabir Sharma.', type: 'success' });
-    navigate('/dashboard');
+    if (password.length < 8) { showToast({ title: 'Validation Error', message: 'Password must contain at least 8 characters.', type: 'error' }); return; }
+    if (await login(email, password)) { showToast({ title: 'DEMO MODE', message: 'Local demo session started. This is not production-secure.', type: 'info' }); navigate('/dashboard'); }
   };
 
   return (
@@ -44,8 +40,9 @@ export const LoginPage: React.FC = () => {
         </div>
 
         <Card padding="lg" className="border-krew-border/80 bg-krew-card shadow-2xl">
-          <div className="mb-4">
-            <StatusPill type="architected" label="Auth Interface Scaffolding" />
+          <div className="mb-4 space-y-2">
+            <StatusPill type="sample" label="Local DEMO MODE · Not production-secure" />
+            {authError && <p role="alert" className="text-sm text-rose-300">{authError}</p>}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

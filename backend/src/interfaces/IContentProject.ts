@@ -7,11 +7,12 @@ export interface IContentProject {
   sourceFileName?: string;
   sourceDuration?: number;
   fileSizeBytes?: number;
-  status: 'draft' | 'in_production' | 'review_ready' | 'scheduled' | 'completed';
+  status: 'draft' | 'queued' | 'in_production' | 'review_ready' | 'approved' | 'archived';
   targetPlatforms: string[];
   activeAgents: string[];
   pipelineStep: number;
   createdAt: Date;
   updatedAt: Date;
+  fileMetadata?: { mimeType?: string; originalName?: string; fileSizeBytes?: number };
 }
 

@@ -11,12 +11,11 @@ import { ArrowRight, User, Mail, Lock } from 'lucide-react';
 
 export const SignupPage: React.FC = () => {
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const { signup, error: authError, isLoading } = useAuth();
   const { showToast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,11 +23,8 @@ export const SignupPage: React.FC = () => {
       showToast({ title: 'Missing Fields', message: 'Please complete all required fields.', type: 'error' });
       return;
     }
-    setIsLoading(true);
-    await signup(name, email, password);
-    setIsLoading(false);
-    showToast({ title: 'Welcome to KREW!', message: 'Creator profile scaffold initialized.', type: 'success' });
-    navigate('/creator-dna');
+    if (password.length < 8) { showToast({ title: 'Validation Error', message: 'Password must contain at least 8 characters.', type: 'error' }); return; }
+    if (await signup(name.trim(), email, password)) { showToast({ title: 'DEMO MODE', message: 'Local demo session created. No password is stored.', type: 'info' }); navigate('/creator-dna'); }
   };
 
   return (
@@ -45,8 +41,9 @@ export const SignupPage: React.FC = () => {
         </div>
 
         <Card padding="lg" className="border-krew-border/80 bg-krew-card shadow-2xl">
-          <div className="mb-4">
-            <StatusPill type="architected" label="Registration Scaffolding" />
+          <div className="mb-4 space-y-2">
+            <StatusPill type="sample" label="Local DEMO MODE · Not production-secure" />
+            {authError && <p role="alert" className="text-sm text-rose-300">{authError}</p>}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

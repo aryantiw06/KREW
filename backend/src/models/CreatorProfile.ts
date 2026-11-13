@@ -42,7 +42,9 @@ const CreatorProfileSchema = new Schema<CreatorProfileDocument>(
     },
     contentGuidelines: [{ type: String }],
     preferredVideoFormats: [{ type: String }],
-    memorySyncStatus: { type: String, default: 'Live Memory Ready' }
+    memorySyncStatus: { type: String, default: 'saved' },
+    profileVersion: { type: Number, default: 1, min: 1 },
+  lastSyncRequestedAt: { type: Date, default: null }
   },
   {
     timestamps: true,

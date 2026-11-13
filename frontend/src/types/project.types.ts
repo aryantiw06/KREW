@@ -1,6 +1,6 @@
 import { AgentRole } from './agent.types';
 
-export type ProjectStatus = 'draft' | 'in_production' | 'review_ready' | 'scheduled' | 'completed';
+export type ProjectStatus = 'draft' | 'queued' | 'in_production' | 'review_ready' | 'approved' | 'archived';
 
 export interface ContentProject {
   id: string;

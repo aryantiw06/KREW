@@ -1,112 +1,38 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { authService, AuthUser } from '../services/authService';
 
-export interface UserSession {
-  id: string;
-  name: string;
-  email: string;
-  handle: string;
-  avatarUrl?: string;
-  role: 'creator_star';
-}
-
-interface AuthContextValue {
-  user: UserSession | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, pass: string) => Promise<boolean>;
-  signup: (name: string, email: string, pass: string) => Promise<boolean>;
-  logout: () => void;
-}
-
+export interface UserSession extends AuthUser { token: string; demoMode?: boolean }
+interface AuthContextValue { user: UserSession | null; isAuthenticated: boolean; isLoading: boolean; demoMode: boolean; error: string | null; login: (email: string, pass: string) => Promise<boolean>; signup: (name: string, email: string, pass: string) => Promise<boolean>; logout: () => Promise<void> }
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+const SESSION_KEY = 'krew_user_session';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserSession | null>(() => {
-    const saved = localStorage.getItem('krew_user_session');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return null;
-      }
-    }
-    // Default logged-in creator for smooth evaluation
-    return {
-      id: 'usr-001',
-      name: 'Kabir Sharma',
-      email: 'kabir@krew.studio',
-      handle: '@kabircreates',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-      role: 'creator_star'
-    };
-  });
-
-  const [isLoading, setIsLoading] = useState(false);
-
+  const [user, setUser] = useState<UserSession | null>(null); const [isLoading, setIsLoading] = useState(true); const [error, setError] = useState<string | null>(null);
+  const saveSession = (session: UserSession | null) => { setUser(session); if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session)); else localStorage.removeItem(SESSION_KEY); };
   useEffect(() => {
-    if (user) {
-      localStorage.setItem('krew_user_session', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('krew_user_session');
-    }
-  }, [user]);
-
-  const login = async (email: string): Promise<boolean> => {
-    setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 600)); // UI delay for realism
-    const session: UserSession = {
-      id: 'usr-001',
-      name: 'Kabir Sharma',
-      email,
-      handle: '@kabircreates',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-      role: 'creator_star'
+    let active = true;
+    const restore = async () => {
+      try {
+        const raw = localStorage.getItem(SESSION_KEY); if (!raw) return;
+        const saved = JSON.parse(raw) as UserSession;
+        if (!saved.token) { localStorage.removeItem(SESSION_KEY); return; }
+        const response = await authService.me(saved.token);
+        if (!response.success || !response.data?.user) throw new Error('Session expired');
+        if (active) saveSession({ ...response.data.user, token: saved.token, demoMode: response.data.demoMode });
+      } catch { localStorage.removeItem(SESSION_KEY); if (active) setUser(null); }
+      finally { if (active) setIsLoading(false); }
     };
-    setUser(session);
-    setIsLoading(false);
-    return true;
+    void restore(); return () => { active = false; };
+  }, []);
+  const authenticate = async (operation: () => ReturnType<typeof authService.login>) => {
+    setIsLoading(true); setError(null);
+    try { const result = await operation(); if (!result.success || !result.data) throw new Error(result.message || 'Authentication failed'); saveSession({ ...result.data.user, token: result.data.token, demoMode: result.data.demoMode }); return true; }
+    catch (e) { setError(e instanceof Error ? e.message : 'Authentication request failed'); return false; }
+    finally { setIsLoading(false); }
   };
-
-  const signup = async (name: string, email: string): Promise<boolean> => {
-    setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 700));
-    const session: UserSession = {
-      id: 'usr-new',
-      name,
-      email,
-      handle: `@${name.toLowerCase().replace(/\s+/g, '')}`,
-      role: 'creator_star'
-    };
-    setUser(session);
-    setIsLoading(false);
-    return true;
-  };
-
-  const logout = () => {
-    setUser(null);
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        isLoading,
-        login,
-        signup,
-        logout
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  const login = (email: string, pass: string) => authenticate(() => authService.login(email, pass));
+  const signup = (name: string, email: string, pass: string) => authenticate(() => authService.register(name, email, pass));
+  const logout = async () => { const token = user?.token; try { if (token) await authService.logout(token); } finally { saveSession(null); } };
+  return <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, demoMode: !!user?.demoMode, error, login, signup, logout }}>{children}</AuthContext.Provider>;
 };
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
+export const useAuth = () => { const value = useContext(AuthContext); if (!value) throw new Error('useAuth must be used within an AuthProvider'); return value; };

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCreatorDna } from '../../contexts/CreatorDnaContext';
 import { Card } from '../../components/common/Card';
 import { Input, Textarea } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { StatusPill } from '../../components/common/StatusPill';
+import { Modal } from '../../components/common/Modal';
 import {
   Dna,
   Save,
@@ -22,15 +23,17 @@ import {
 } from 'lucide-react';
 
 export const CreatorDnaPage: React.FC = () => {
-  const { profile, updateProfile, resetProfile, syncWithEngine, isSyncing } = useCreatorDna();
+  const { profile, updateProfile, resetProfile, syncWithEngine, isSyncing, isLoading, isSaving, error, isBackendSaved, metadata } = useCreatorDna();
 
   // Local editable form state
   const [formData, setFormData] = useState(profile);
   const [newPhrase, setNewPhrase] = useState('');
   const [newBannedWord, setNewBannedWord] = useState('');
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  useEffect(() => setFormData(profile), [profile]);
 
-  const handleSave = () => {
-    updateProfile(formData);
+  const handleSave = async () => {
+    await updateProfile(formData);
   };
 
   const addPhrase = () => {
@@ -101,7 +104,7 @@ export const CreatorDnaPage: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={resetProfile}
+            onClick={() => setShowResetConfirm(true)}
             leftIcon={<RotateCcw className="w-4 h-4" />}
           >
             Reset Blueprint
@@ -119,11 +122,16 @@ export const CreatorDnaPage: React.FC = () => {
             variant="primary"
             size="sm"
             onClick={handleSave}
+            isLoading={isSaving}
             leftIcon={<Save className="w-4 h-4" />}
           >
             Save DNA
           </Button>
         </div>
+      </div>
+
+      <div className={`rounded-xl border px-4 py-3 text-sm ${error ? 'border-rose-500/40 bg-rose-500/10 text-rose-200' : isBackendSaved ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200' : 'border-amber-500/30 bg-amber-500/10 text-amber-200'}`}>
+        {isLoading ? 'Loading Creator DNA from backend…' : error ? `${error} Unsaved edits remain cached locally.` : isBackendSaved ? `Saved to backend · ${metadata?.persistenceMode || 'backend'} storage${metadata?.persistenceAcrossRestarts === false ? ' (temporary; lost when server restarts)' : ''}${metadata ? ` · profile version ${metadata.profileVersion}` : ''}` : 'Creator DNA is cached locally and has not been confirmed by the backend.'}
       </div>
 
       {/* DNA Health / Visualizer Banner */}
@@ -165,6 +173,10 @@ export const CreatorDnaPage: React.FC = () => {
           </div>
         </div>
       </Card>
+
+      <Modal isOpen={showResetConfirm} onClose={() => setShowResetConfirm(false)} title="Reset Creator DNA?" subtitle="This replaces your current profile with the default blueprint.">
+        <div className="flex justify-end gap-3"><Button variant="outline" onClick={() => setShowResetConfirm(false)}>Cancel</Button><Button variant="danger" onClick={async () => { await resetProfile(); setShowResetConfirm(false); }}>Reset Blueprint</Button></div>
+      </Modal>
 
       {/* Profile Form Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

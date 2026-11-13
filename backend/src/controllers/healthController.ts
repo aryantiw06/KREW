@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { sendSuccess } from '../utils/apiResponse';
-import { isDbConnected } from '../config/database';
+import { getPersistenceMode } from '../config/database';
 import { config } from '../config/environment';
 
 export function getHealth(req: Request, res: Response) {
@@ -10,10 +10,7 @@ export function getHealth(req: Request, res: Response) {
     uptimeSeconds: Math.floor(process.uptime()),
     environment: config.nodeEnv,
     version: '0.1.0-alpha',
-    database: {
-      connected: isDbConnected(),
-      mode: isDbConnected() ? 'MongoDB Atlas Live' : 'In-Memory Pre-Event Scaffolding'
-    },
+    database: getPersistenceMode(),
     hackathonGovernance: {
       event: 'GeNarrative Clash 2026',
       track: 'Autonomous Creator Agents — Content Strategy & Distribution',

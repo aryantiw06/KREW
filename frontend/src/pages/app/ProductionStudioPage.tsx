@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { SAMPLE_PROJECTS } from '../../data/sampleProjects';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Clapperboard, Plus, Film, Search, Archive, Pencil, Eye } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { projectService } from '../../services/projectService';
 import { ContentProject, ProjectStatus } from '../../types/project.types';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
@@ -7,309 +9,27 @@ import { Input, Textarea } from '../../components/common/Input';
 import { Badge } from '../../components/common/Badge';
 import { StatusPill } from '../../components/common/StatusPill';
 import { Modal } from '../../components/common/Modal';
-import { useToast } from '../../hooks/useToast';
-import { formatDuration, formatDate } from '../../utils/formatters';
-import {
-  Clapperboard,
-  UploadCloud,
-  Film,
-  Plus,
-  Clock,
-  FileVideo,
-  CheckCircle2,
-  Filter,
-  Sparkles,
-  ArrowRight,
-  HardDrive,
-  Info
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+
+const statuses: Array<'all' | ProjectStatus> = ['all', 'draft', 'queued', 'in_production', 'review_ready', 'approved', 'archived'];
+const blank = { title: '', description: '', sourceType: 'topic_brief' as ContentProject['sourceType'], sourceFileName: '', targetPlatforms: ['YouTube'] };
 
 export const ProductionStudioPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { showToast } = useToast();
-  const [projects, setProjects] = useState<ContentProject[]>(SAMPLE_PROJECTS);
-  const [filter, setFilter] = useState<string>('all');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { user } = useAuth(); const [projects, setProjects] = useState<ContentProject[]>([]); const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false); const [error, setError] = useState(''); const [notice, setNotice] = useState(''); const [mode, setMode] = useState('');
+  const [filter, setFilter] = useState('all'); const [search, setSearch] = useState(''); const [sort, setSort] = useState<'asc' | 'desc'>('desc'); const [open, setOpen] = useState(false); const [detail, setDetail] = useState<ContentProject | null>(null); const [editing, setEditing] = useState(false); const [form, setForm] = useState(blank); const [file, setFile] = useState<File | null>(null);
+  const load = useCallback(async () => { if (!user?.token) return; setLoading(true); setError(''); try { const result = await projectService.list(user.token, { status: filter, search, sort }); if (!result.success || !result.data) throw new Error(result.message || 'Could not load projects'); setProjects(result.data.items); setMode(result.data.persistence.mode); } catch (e) { setError(e instanceof Error ? e.message : 'Could not load projects'); } finally { setLoading(false); } }, [user?.token, filter, search, sort]);
+  useEffect(() => { void load(); }, [load]);
+  const submit = async (event: React.FormEvent) => { event.preventDefault(); if (!user?.token || !form.title.trim()) return; setSaving(true); setError(''); setNotice(''); try { const result = editing && detail ? await projectService.update(user.token, detail.id, form) : await projectService.create(user.token, { ...form, sourceFileName: file?.name || form.sourceFileName || undefined, fileMetadata: file ? { originalName: file.name, mimeType: file.type, fileSizeBytes: file.size } : undefined }); if (!result.success || !result.data) throw new Error(result.message || 'Project action failed'); setNotice(result.message || 'Project saved'); setOpen(false); setEditing(false); setDetail(null); setForm(blank); setFile(null); await load(); } catch (e) { setError(e instanceof Error ? e.message : 'Project action failed'); } finally { setSaving(false); } };
+  const inspect = async (item: ContentProject) => { if (!user?.token) return; setError(''); try { const result = await projectService.get(user.token, item.id); if (result.success && result.data) setDetail(result.data.project); else throw new Error(result.message); } catch (e) { setError(e instanceof Error ? e.message : 'Could not load project'); } };
+  const transition = async (item: ContentProject, status: ProjectStatus) => { if (!user?.token) return; setSaving(true); setError(''); try { const result = await projectService.updateStatus(user.token, item.id, status); if (!result.success) throw new Error(result.message); setNotice(`Project moved to ${status.replace('_', ' ')}.`); await load(); } catch (e) { setError(e instanceof Error ? e.message : 'Could not update status'); } finally { setSaving(false); } };
+  const archive = async (item: ContentProject) => { if (!user?.token || !window.confirm(`Archive “${item.title}”?`)) return; setSaving(true); try { const result = await projectService.archive(user.token, item.id); if (!result.success) throw new Error(result.message); setNotice('Project archived.'); await load(); } catch (e) { setError(e instanceof Error ? e.message : 'Could not archive project'); } finally { setSaving(false); } };
 
-  // New production form state
-  const [newTitle, setNewTitle] = useState('');
-  const [newDescription, setNewDescription] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-
-  const filteredProjects = projects.filter((p) => {
-    if (filter === 'all') return true;
-    return p.status === filter;
-  });
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setSelectedFile(file);
-    }
-  };
-
-  const handleCreateProduction = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle.trim()) {
-      showToast({ title: 'Validation', message: 'Please provide a production title.', type: 'error' });
-      return;
-    }
-
-    setIsUploading(true);
-    await new Promise((r) => setTimeout(r, 900));
-
-    const newProj: ContentProject = {
-      id: `proj-${Date.now().toString().slice(-4)}`,
-      title: newTitle.trim(),
-      description: newDescription.trim() || 'A new multi-agent content campaign initiated by the creator.',
-      sourceType: selectedFile ? 'raw_video' : 'topic_brief',
-      sourceFileName: selectedFile?.name || 'concept_manifest.pdf',
-      sourceDuration: 720,
-      fileSizeBytes: selectedFile?.size || 150000000,
-      status: 'in_production',
-      targetPlatforms: ['YouTube', 'Instagram', 'LinkedIn'],
-      activeAgents: ['director', 'writer', 'editor'],
-      pipelineStep: 2,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      clipsCount: 0,
-      thumbnailCount: 0
-    };
-
-    setProjects([newProj, ...projects]);
-    setIsUploading(false);
-    setIsModalOpen(false);
-    setNewTitle('');
-    setNewDescription('');
-    setSelectedFile(null);
-
-    showToast({
-      title: 'Production Created',
-      message: 'The Director has received your brief and initialized agent task manifests.',
-      type: 'success'
-    });
-  };
-
-  return (
-    <div className="space-y-8">
-      {/* Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-krew-border/60 pb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono uppercase tracking-wider text-krew-lavender bg-krew-purple/15 px-2.5 py-0.5 rounded-full border border-krew-purple/30 flex items-center gap-1.5">
-              <Clapperboard className="w-3.5 h-3.5 text-krew-purple" />
-              <span>PROJECT MANAGEMENT PIPELINE</span>
-            </span>
-            <StatusPill type="architected" label="Production Studio Ready" />
-          </div>
-          <h1 className="font-display font-bold text-3xl text-white tracking-tight">
-            Production Studio
-          </h1>
-          <p className="text-xs sm:text-sm text-krew-text-secondary mt-1 max-w-2xl">
-            Where master content campaigns are born. Upload raw footage or topic briefs to dispatch your autonomous crew.
-          </p>
-        </div>
-
-        <Button
-          variant="primary"
-          size="md"
-          onClick={() => setIsModalOpen(true)}
-          leftIcon={<Plus className="w-4 h-4" />}
-          className="shadow-purple-glow"
-        >
-          New Production
-        </Button>
-      </div>
-
-      {/* Upload Zone & Quick Ingestion Banner */}
-      <Card
-        padding="lg"
-        className="border-dashed border-krew-purple/40 bg-gradient-to-br from-krew-surface/60 to-krew-card text-center cursor-pointer hover:border-krew-purple transition-all"
-        onClick={() => setIsModalOpen(true)}
-      >
-        <div className="max-w-xl mx-auto space-y-3">
-          <div className="w-14 h-14 rounded-2xl bg-krew-purple/15 text-krew-lavender border border-krew-purple/30 flex items-center justify-center mx-auto shadow-purple-glow">
-            <UploadCloud className="w-7 h-7" />
-          </div>
-          <h3 className="font-display text-xl font-bold text-white">
-            Start a New Master Production
-          </h3>
-          <p className="text-xs text-krew-text-secondary leading-relaxed">
-            Drag and drop 4K master video files, podcast WAV audio, or PDF topic briefs. Supported: <span className="font-mono text-krew-lavender">MP4, MOV, MKV, ProRes, WAV, MP3, PDF</span> up to 10GB.
-          </p>
-          <div className="pt-2">
-            <Button variant="outline" size="sm" leftIcon={<FileVideo className="w-4 h-4" />}>
-              Select Master Footage
-            </Button>
-          </div>
-        </div>
-      </Card>
-
-      {/* Filter and Projects Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          {['all', 'in_production', 'review_ready', 'scheduled', 'draft'].map((s) => (
-            <button
-              key={s}
-              onClick={() => setFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors ${
-                filter === s
-                  ? 'bg-krew-purple text-white shadow-sm'
-                  : 'bg-krew-surface text-krew-text-muted hover:text-white border border-krew-border'
-              }`}
-            >
-              {s.replace('_', ' ')}
-            </button>
-          ))}
-        </div>
-
-        <span className="text-xs font-mono text-krew-text-muted">
-          Showing {filteredProjects.length} of {projects.length} productions
-        </span>
-      </div>
-
-      {/* Project Cards Grid */}
-      <div className="space-y-4">
-        {filteredProjects.map((project) => (
-          <Card
-            key={project.id}
-            padding="md"
-            glowOnHover
-            className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-krew-card"
-          >
-            <div className="flex items-start gap-4 min-w-0">
-              <div className="w-12 h-12 rounded-xl bg-krew-surface border border-krew-border flex items-center justify-center text-krew-purple shrink-0">
-                <Film className="w-6 h-6" />
-              </div>
-              <div className="min-w-0 space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant={project.status === 'review_ready' ? 'cyan' : 'purple'} size="xs">
-                    {project.status.replace('_', ' ').toUpperCase()}
-                  </Badge>
-                  {project.sourceDuration && (
-                    <span className="text-[11px] font-mono text-krew-text-muted flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {formatDuration(project.sourceDuration)}
-                    </span>
-                  )}
-                  {project.fileSizeBytes && (
-                    <span className="text-[11px] font-mono text-krew-text-muted flex items-center gap-1">
-                      <HardDrive className="w-3 h-3" />
-                      {(project.fileSizeBytes / (1024 * 1024 * 1024)).toFixed(1)} GB
-                    </span>
-                  )}
-                </div>
-
-                <h3 className="font-display text-lg font-bold text-white truncate max-w-2xl">
-                  {project.title}
-                </h3>
-                <p className="text-xs text-krew-text-secondary line-clamp-2 max-w-2xl">
-                  {project.description}
-                </p>
-
-                <div className="flex flex-wrap items-center gap-3 pt-2 text-xs text-krew-text-muted font-mono">
-                  <span>File: {project.sourceFileName}</span>
-                  <span>•</span>
-                  <span>Stage {project.pipelineStep}/5</span>
-                  <span>•</span>
-                  <span>Created: {formatDate(project.createdAt)}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-3 self-end lg:self-center shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/clip-intelligence')}
-              >
-                Clips ({project.clipsCount || 0})
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                rightIcon={<ArrowRight className="w-4 h-4" />}
-                onClick={() => navigate('/distribution')}
-              >
-                Open Campaign
-              </Button>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {/* New Production Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Initialize New Content Production"
-        subtitle="The Director will receive this brief and coordinate The Writer, Editor, and Cinematographer."
-        maxWidth="xl"
-      >
-        <form onSubmit={handleCreateProduction} className="space-y-4">
-          <Input
-            label="Production Title"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="e.g. Why Christopher Nolan Never Cuts in the Middle of Action"
-            required
-          />
-
-          <Textarea
-            label="Creative Brief / Master Vision"
-            value={newDescription}
-            onChange={(e) => setNewDescription(e.target.value)}
-            placeholder="Explain what the video is about, the target lesson, emotional climax, and platforms..."
-            rows={3}
-          />
-
-          {/* Local File Ingestion */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-medium uppercase tracking-wider text-krew-text-secondary">
-              Attach Master Footage or Topic Brief (Optional)
-            </label>
-            <div className="border border-dashed border-krew-border rounded-xl p-4 bg-krew-surface text-center">
-              <input
-                type="file"
-                id="file-upload"
-                onChange={handleFileChange}
-                className="hidden"
-                accept="video/*,audio/*,.pdf"
-              />
-              <label
-                htmlFor="file-upload"
-                className="cursor-pointer flex flex-col items-center justify-center gap-1 text-xs text-krew-text-secondary hover:text-white"
-              >
-                <FileVideo className="w-6 h-6 text-krew-lavender" />
-                <span className="font-semibold text-white">
-                  {selectedFile ? selectedFile.name : 'Click to select local file'}
-                </span>
-                <span className="text-[10px] text-krew-text-muted">
-                  {selectedFile
-                    ? `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB selected`
-                    : 'MP4, MOV, MKV, WAV, PDF'}
-                </span>
-              </label>
-            </div>
-          </div>
-
-          <div className="pt-2">
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              isLoading={isUploading}
-              className="w-full shadow-purple-glow"
-            >
-              Dispatch KREW Workforce
-            </Button>
-          </div>
-        </form>
-      </Modal>
-    </div>
-  );
+  return <div className="space-y-8">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-krew-border/60 pb-6"><div><div className="flex items-center gap-2 mb-1"><Clapperboard className="w-4 h-4 text-krew-purple"/><span className="text-xs font-mono uppercase tracking-wider text-krew-lavender">Project Management Pipeline</span><StatusPill type="architected" label="Demo Project Workspace"/></div><h1 className="font-display font-bold text-3xl text-white">Production Studio</h1><p className="text-sm text-krew-text-secondary mt-1">Create and manage project briefs. No AI processing is started.</p></div><Button variant="primary" onClick={() => { setForm(blank); setEditing(false); setOpen(true); }} leftIcon={<Plus className="w-4 h-4"/>}>New Project</Button></div>
+    {error && <div role="alert" className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</div>}{notice && <div role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">{notice} {mode === 'in-memory' && 'Saved in temporary memory; data is lost when the server restarts.'}</div>}
+    <div className="flex flex-col md:flex-row gap-3"><div className="relative flex-1"><Search className="absolute left-3 top-3 w-4 h-4 text-krew-text-muted"/><Input aria-label="Search projects by title" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search project titles…" className="pl-10"/></div><select value={sort} onChange={e => setSort(e.target.value as 'asc'|'desc')} className="rounded-xl bg-krew-surface border border-krew-border text-white px-3"><option value="desc">Newest first</option><option value="asc">Oldest first</option></select></div>
+    <div className="flex gap-2 overflow-x-auto">{statuses.map(s => <button key={s} onClick={() => setFilter(s)} className={`px-3 py-2 rounded-lg text-xs uppercase whitespace-nowrap ${filter===s?'bg-krew-purple text-white':'bg-krew-surface text-krew-text-muted border border-krew-border'}`}>{s.replace('_',' ')}</button>)}</div>
+    {loading ? <Card padding="lg"><p className="text-krew-text-secondary">Loading projects…</p></Card> : projects.length === 0 ? <Card padding="lg"><p className="text-white font-semibold">No projects found</p><p className="text-sm text-krew-text-secondary mt-1">Create a project or adjust the search and filters.</p></Card> : <div className="space-y-4">{projects.map(p => <Card key={p.id} padding="md" className="flex flex-col lg:flex-row justify-between gap-5"><div className="flex gap-4"><Film className="w-8 h-8 text-krew-purple shrink-0"/><div><Badge variant="purple" size="xs">{p.status.replace('_',' ').toUpperCase()}</Badge><h3 className="font-display text-lg font-bold text-white mt-2">{p.title}</h3><p className="text-sm text-krew-text-secondary">{p.description || 'No description'} · {new Date(p.createdAt).toLocaleDateString()}</p><p className="text-xs text-krew-text-muted mt-1">{p.sourceType} · {p.sourceFileName || 'No source attached'} · {p.targetPlatforms.join(', ') || 'No platforms selected'}</p></div></div><div className="flex flex-wrap items-center gap-2"><Button variant="outline" size="sm" onClick={() => void inspect(p)} leftIcon={<Eye className="w-4 h-4"/>}>Details</Button><Button variant="outline" size="sm" disabled={saving} onClick={() => { setDetail(p); setForm({ title:p.title, description:p.description, sourceType:p.sourceType, sourceFileName:p.sourceFileName||'', targetPlatforms:p.targetPlatforms }); setEditing(true); setOpen(true); }} leftIcon={<Pencil className="w-4 h-4"/>}>Edit</Button><select aria-label={`Change status for ${p.title}`} disabled={saving} value={p.status} onChange={e => void transition(p,e.target.value as ProjectStatus)} className="rounded-lg bg-krew-surface border border-krew-border px-2 py-2 text-xs text-white">{statuses.slice(1).map(s=><option key={s} value={s}>{s.replace('_',' ')}</option>)}</select><Button variant="outline" size="sm" disabled={saving||p.status==='archived'} onClick={() => void archive(p)} leftIcon={<Archive className="w-4 h-4"/>}>Archive</Button></div></Card>)}</div>}
+    <Modal isOpen={open} onClose={() => !saving && setOpen(false)} title={editing?'Edit Project':'Create Project'} subtitle="Project management only; no AI tasks are dispatched." maxWidth="xl"><form onSubmit={submit} className="space-y-4"><Input label="Project title" required maxLength={200} value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/><Textarea label="Description" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} rows={3}/><label className="block text-xs text-krew-text-secondary">Source type<select value={form.sourceType} onChange={e=>setForm({...form,sourceType:e.target.value as ContentProject['sourceType']})} className="mt-1 w-full rounded-xl bg-krew-surface border border-krew-border p-3 text-white">{[['topic_brief','Topic brief'],['raw_video','Raw video'],['podcast_audio','Podcast audio'],['screen_recording','Screen recording']].map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label><Input label="Source filename (optional)" value={form.sourceFileName} onChange={e=>setForm({...form,sourceFileName:e.target.value})}/>{!editing&&<input type="file" onChange={e=>setFile(e.target.files?.[0]||null)} className="text-sm text-white"/>}<Input label="Target platforms (comma separated)" value={form.targetPlatforms.join(', ')} onChange={e=>setForm({...form,targetPlatforms:e.target.value.split(',').map(v=>v.trim()).filter(Boolean)})}/><Button type="submit" variant="primary" className="w-full" isLoading={saving} disabled={!form.title.trim()||saving}>{editing?'Save Changes':'Create Draft'}</Button></form></Modal>
+    <Modal isOpen={!!detail} onClose={()=>setDetail(null)} title={detail?.title} subtitle="Project details from the backend"><div className="space-y-3 text-sm text-krew-text-secondary"><p>{detail?.description}</p><p>Status: {detail?.status}</p><p>Source: {detail?.sourceType} · {detail?.sourceFileName || 'none'}</p><p>Platforms: {detail?.targetPlatforms.join(', ')}</p><p>Created: {detail?.createdAt && new Date(detail.createdAt).toLocaleString()}</p></div></Modal>
+  </div>;
 };
-

@@ -58,7 +58,7 @@ export const SAMPLE_PROJECTS: ContentProject[] = [
     sourceFileName: 'sensor_benchmarks_8k_vs_4k.mp4',
     sourceDuration: 740,
     fileSizeBytes: 1800000000,
-    status: 'scheduled',
+    status: 'queued',
     targetPlatforms: ['YouTube', 'Instagram', 'Facebook'],
     activeAgents: ['director', 'publicist', 'producer'],
     pipelineStep: 5,

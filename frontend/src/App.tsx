@@ -25,6 +25,13 @@ import { DistributionDeskPage } from './pages/app/DistributionDeskPage';
 import { GrowthInsightsPage } from './pages/app/GrowthInsightsPage';
 import { SettingsPage } from './pages/app/SettingsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { useAuth } from './contexts/AuthContext';
+
+const ProtectedStudio: React.FC = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return <div className="min-h-screen bg-krew-bg text-white grid place-items-center">Restoring your session…</div>;
+  return isAuthenticated ? <AppLayout /> : <Navigate to="/login" replace />;
+};
 
 export const App: React.FC = () => {
   return (
@@ -42,7 +49,7 @@ export const App: React.FC = () => {
               </Route>
 
               {/* Protected / Studio App Routes */}
-              <Route element={<AppLayout />}>
+              <Route element={<ProtectedStudio />}>
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/creator-dna" element={<CreatorDnaPage />} />
                 <Route path="/crew" element={<CrewPage />} />

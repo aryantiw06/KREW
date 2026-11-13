@@ -8,11 +8,11 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ) {
-  logger.error(`[Unhandled Error] ${req.method} ${req.originalUrl}:`, err.stack || err.message);
+  logger.error(`[Unhandled Error] ${req.method} ${req.path}: ${err.message || 'Unknown error'}`);
 
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal server error';
 
-  return sendError(res, message, statusCode, process.env.NODE_ENV === 'development' ? err.stack : undefined);
+  return sendError(res, statusCode >= 500 ? 'Internal server error' : message, statusCode);
 }
 

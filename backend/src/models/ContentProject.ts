@@ -16,10 +16,11 @@ const ContentProjectSchema = new Schema<ContentProjectDocument>(
     sourceFileName: { type: String },
     sourceDuration: { type: Number },
     fileSizeBytes: { type: Number },
+    fileMetadata: { type: Schema.Types.Mixed, default: {} },
     status: {
       type: String,
-      enum: ['draft', 'in_production', 'review_ready', 'scheduled', 'completed'],
-      default: 'in_production'
+      enum: ['draft', 'queued', 'in_production', 'review_ready', 'approved', 'archived'],
+      default: 'draft'
     },
     targetPlatforms: [{ type: String }],
     activeAgents: [{ type: String }],

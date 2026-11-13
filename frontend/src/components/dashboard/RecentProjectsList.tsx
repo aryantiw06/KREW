@@ -14,8 +14,9 @@ export const RecentProjectsList: React.FC = () => {
     review_ready: <Badge variant="cyan" size="xs">Review Ready</Badge>,
     in_production: <Badge variant="purple" size="xs">In Production</Badge>,
     draft: <Badge variant="neutral" size="xs">Strategy Draft</Badge>,
-    scheduled: <Badge variant="emerald" size="xs">Scheduled</Badge>,
-    completed: <Badge variant="emerald" size="xs">Released</Badge>
+    queued: <Badge variant="neutral" size="xs">Queued</Badge>,
+    approved: <Badge variant="emerald" size="xs">Approved</Badge>,
+    archived: <Badge variant="neutral" size="xs">Archived</Badge>
   };
 
   return (
@@ -52,7 +53,7 @@ export const RecentProjectsList: React.FC = () => {
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  {statusBadges[project.status]}
+                  {statusBadges[project.status] || <Badge variant="neutral" size="xs">{project.status}</Badge>}
                   {project.sourceDuration && (
                     <span className="text-[11px] font-mono text-krew-text-muted flex items-center gap-1">
                       <Clock className="w-3 h-3" />

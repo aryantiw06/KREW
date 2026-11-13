@@ -37,6 +37,8 @@ export interface ICreatorProfile {
   contentGuidelines: string[];
   preferredVideoFormats: string[];
   memorySyncStatus: string;
+  profileVersion?: number;
+  lastSyncRequestedAt?: Date | null;
   updatedAt: Date;
 }
 

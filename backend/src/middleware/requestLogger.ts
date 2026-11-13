@@ -6,7 +6,8 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
 
   res.on('finish', () => {
     const duration = Date.now() - start;
-    logger.info(`[HTTP] ${req.method} ${req.originalUrl} ${res.statusCode} - ${duration}ms`);
+    const safePath = req.path.replace(/\/[^/]+@[^/]+/g, '/[redacted]');
+    logger.info(`[HTTP] ${req.method} ${safePath} ${res.statusCode} - ${duration}ms`);
   });
 
   next();
