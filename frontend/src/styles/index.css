@@ -5,13 +5,40 @@
 @layer base {
   :root {
     color-scheme: dark;
+    --krew-bg: #09090D;
+    --krew-bg-secondary: #101016;
+    --krew-surface: #16161F;
+    --krew-surface-elevated: #201F2A;
+    --krew-purple: #A855F7;
+    --krew-lavender: #C4B5FD;
+    --krew-cyan: #38BDF8;
+    --krew-text: #F5F3FA;
+    --krew-text-secondary: #A1A1AA;
+    --krew-text-muted: #71717A;
+    --krew-success: #22C55E;
+    --krew-warning: #F59E0B;
+    --krew-error: #F43F5E;
+    --krew-line: rgba(196, 181, 253, 0.12);
+    --krew-line-strong: rgba(196, 181, 253, 0.22);
+    font-family: Inter, system-ui, sans-serif;
   }
 
   body {
-    background-color: #0B0B10;
-    color: #F8FAFC;
+    background-color: var(--krew-bg);
+    color: var(--krew-text);
     overflow-x: hidden;
   }
+}
+
+@layer components {
+  .krew-section-heading { @apply font-display text-xl font-semibold tracking-tight text-krew-text-primary; }
+  .krew-meta { @apply font-mono text-xs text-krew-text-muted; }
+  .krew-focus { @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-krew-purple focus-visible:ring-offset-2 focus-visible:ring-offset-krew-bg; }
+  .krew-surface { @apply rounded-2xl bg-krew-card; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
 
 /* Custom Studio Scrollbar */
@@ -21,11 +48,11 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0B0B10;
+  background: var(--krew-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2C2C3E;
+  background: var(--krew-line-strong);
   border-radius: 4px;
 }
 

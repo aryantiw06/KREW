@@ -9,13 +9,13 @@ export default {
     extend: {
       colors: {
         krew: {
-          bg: '#0B0B10',
-          charcoal: '#15151D',
-          surface: '#1A1A24',
-          card: '#1F1F2C',
-          cardHover: '#262637',
-          border: '#2C2C3E',
-          borderLight: '#3D3D54',
+          bg: '#09090D',
+          charcoal: '#101016',
+          surface: '#16161F',
+          card: '#201F2A',
+          cardHover: '#292835',
+          border: 'rgba(196, 181, 253, 0.12)',
+          borderLight: 'rgba(196, 181, 253, 0.22)',
           purple: {
             DEFAULT: '#A855F7',
             glow: '#9333EA',
@@ -34,22 +34,24 @@ export default {
             border: 'rgba(56, 189, 248, 0.3)',
           },
           text: {
-            primary: '#F8FAFC',
+            primary: '#F5F3FA',
             secondary: '#A1A1AA',
             muted: '#71717A',
           },
           status: {
-            active: '#10B981',
+            active: '#22C55E',
             warning: '#F59E0B',
-            idle: '#6B7280',
-            planned: '#8B5CF6',
+            idle: '#71717A',
+            planned: '#A855F7',
+            success: '#22C55E',
+            error: '#F43F5E',
           }
         }
       },
       fontFamily: {
         display: ['"Space Grotesk"', 'sans-serif'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'monospace'],
+        mono: ['"IBM Plex Mono"', 'monospace'],
       },
       boxShadow: {
         'purple-glow': '0 0 25px -5px rgba(168, 85, 247, 0.25)',

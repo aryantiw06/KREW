@@ -58,6 +58,9 @@ export const Modal: React.FC<ModalProps> = ({
           'relative w-full rounded-2xl bg-krew-card border border-krew-border p-6 shadow-2xl z-10 transition-all my-8 animate-in fade-in zoom-in-95 duration-200',
           maxWidthStyles[maxWidth]
         )}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title || 'Dialog'}
       >
         <div className="flex items-start justify-between gap-4 mb-5 border-b border-krew-border/60 pb-4">
           <div>

@@ -40,7 +40,7 @@ export const Button: React.FC<ButtonProps> = ({
     <button
       disabled={disabled || isLoading}
       className={cn(
-        'inline-flex items-center justify-center font-medium transition-all duration-200 select-none focus:outline-none focus:ring-2 focus:ring-krew-purple/40 disabled:opacity-50 disabled:cursor-not-allowed',
+        'inline-flex items-center justify-center font-medium transition-all duration-200 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-krew-purple focus-visible:ring-offset-2 focus-visible:ring-offset-krew-bg disabled:opacity-50 disabled:cursor-not-allowed',
         variantStyles[variant],
         sizeStyles[size],
         className

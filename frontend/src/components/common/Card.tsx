@@ -25,7 +25,7 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div
       className={cn(
-        'rounded-2xl bg-krew-card border border-krew-border transition-all duration-300 shadow-studio-card',
+        'rounded-2xl bg-krew-card transition-colors duration-200',
         glowOnHover && 'hover:border-krew-purple/50 hover:shadow-purple-glow hover:-translate-y-0.5',
         activeBorder && 'border-krew-purple/60 shadow-purple-glow',
         paddingStyles[padding],

@@ -22,15 +22,19 @@ export const Tabs: React.FC<TabsProps> = ({
   className = ''
 }) => {
   return (
-    <div className={cn('flex items-center gap-1.5 p-1 rounded-xl bg-krew-surface border border-krew-border overflow-x-auto', className)}>
+    <div role="tablist" className={cn('flex items-center gap-1.5 p-1 rounded-xl bg-krew-surface overflow-x-auto', className)}>
       {tabs.map((tab) => {
         const isActive = tab.id === activeTab;
         return (
           <button
             key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            tabIndex={isActive ? 0 : -1}
             onClick={() => onChange(tab.id)}
             className={cn(
-              'flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap focus:outline-none',
+              'krew-focus flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap',
               isActive
                 ? 'bg-krew-purple text-white shadow-sm'
                 : 'text-krew-text-secondary hover:text-white hover:bg-white/5'
