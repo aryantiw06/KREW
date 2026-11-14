@@ -1,479 +1,70 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Dna, Save, RotateCcw, RefreshCw, Plus, Trash2, Check, CircleAlert, Eye } from 'lucide-react';
 import { useCreatorDna } from '../../contexts/CreatorDnaContext';
-import { Card } from '../../components/common/Card';
+import { CreatorDnaProfile } from '../../types/creatorDna.types';
 import { Input, Textarea } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
-import { Badge } from '../../components/common/Badge';
-import { StatusPill } from '../../components/common/StatusPill';
 import { Modal } from '../../components/common/Modal';
-import {
-  Dna,
-  Save,
-  RotateCcw,
-  RefreshCw,
-  Sparkles,
-  Layers,
-  Palette,
-  Mic2,
-  BookOpen,
-  Eye,
-  CheckCircle2,
-  Plus,
-  Trash2
-} from 'lucide-react';
+import { Tabs } from '../../components/ui/Tabs';
+
+type Section = 'identity' | 'voice' | 'vocabulary' | 'visual';
+const sections = [{ id: 'identity', label: 'Core Identity' }, { id: 'voice', label: 'Voice & Personality' }, { id: 'vocabulary', label: 'Signature Vocabulary' }, { id: 'visual', label: 'Visual Identity' }];
+const countFields = (p: CreatorDnaProfile) => [p.creatorName, p.handle, p.bio, p.contentNiche.length, p.primaryPlatforms.length, p.targetAudience.demographics, p.targetAudience.interests.length, p.targetAudience.painPoints.length, p.communicationTone.primary, p.communicationTone.energyLevel, p.communicationTone.formality, p.storytellingStyle.hookStyle, p.storytellingStyle.pacing, p.storytellingStyle.callToActionPreference, p.vocabularyPreferences.signaturePhrases.length, p.vocabularyPreferences.bannedWords.length, p.vocabularyPreferences.jargonLevel, p.visualIdentity.brandColors.primary, p.visualIdentity.brandColors.secondary, p.visualIdentity.brandColors.accent, p.visualIdentity.thumbnailStyle, p.visualIdentity.fontPreference, p.contentGuidelines.length, p.preferredVideoFormats.length];
+const completion = (p: CreatorDnaProfile) => { const values = countFields(p); const populated = values.filter(value => typeof value === 'number' ? value > 0 : String(value || '').trim().length > 0).length; return Math.round(populated / values.length * 100); };
+const splitList = (value: string) => value.split(',').map(item => item.trim()).filter(Boolean);
 
 export const CreatorDnaPage: React.FC = () => {
   const { profile, updateProfile, resetProfile, syncWithEngine, isSyncing, isLoading, isSaving, error, isBackendSaved, metadata } = useCreatorDna();
-
-  // Local editable form state
-  const [formData, setFormData] = useState(profile);
-  const [newPhrase, setNewPhrase] = useState('');
-  const [newBannedWord, setNewBannedWord] = useState('');
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [formData, setFormData] = useState(profile); const [section, setSection] = useState<Section>('identity');
+  const [newPhrase, setNewPhrase] = useState(''); const [newBannedWord, setNewBannedWord] = useState('');
+  const [showResetConfirm, setShowResetConfirm] = useState(false); const [validationError, setValidationError] = useState('');
   useEffect(() => setFormData(profile), [profile]);
-
-  const handleSave = async () => {
+  const dirty = useMemo(() => JSON.stringify(formData) !== JSON.stringify(profile), [formData, profile]);
+  const completeness = completion(formData);
+  const setField = <K extends keyof CreatorDnaProfile>(key: K, value: CreatorDnaProfile[K]) => setFormData(previous => ({ ...previous, [key]: value }));
+  const save = async () => {
+    setValidationError('');
+    if (!formData.creatorName.trim()) { setSection('identity'); setValidationError('Creator name is required.'); return; }
+    const colors = Object.values(formData.visualIdentity.brandColors);
+    if (colors.some(color => !/^#[0-9A-Fa-f]{6}$/.test(color))) { setSection('visual'); setValidationError('Enter each brand colour as a six-digit hex value, such as #A855F7.'); return; }
     await updateProfile(formData);
   };
-
-  const addPhrase = () => {
-    if (!newPhrase.trim()) return;
-    setFormData((prev) => ({
-      ...prev,
-      vocabularyPreferences: {
-        ...prev.vocabularyPreferences,
-        signaturePhrases: [...prev.vocabularyPreferences.signaturePhrases, newPhrase.trim()]
-      }
-    }));
-    setNewPhrase('');
+  const addItem = (path: 'signaturePhrases' | 'bannedWords', value: string) => {
+    if (!value.trim()) return;
+    setFormData(previous => ({ ...previous, vocabularyPreferences: { ...previous.vocabularyPreferences, [path]: [...previous.vocabularyPreferences[path], value.trim()] } }));
+    path === 'signaturePhrases' ? setNewPhrase('') : setNewBannedWord('');
   };
+  const removeItem = (path: 'signaturePhrases' | 'bannedWords', index: number) => setFormData(previous => ({ ...previous, vocabularyPreferences: { ...previous.vocabularyPreferences, [path]: previous.vocabularyPreferences[path].filter((_, i) => i !== index) } }));
 
-  const removePhrase = (idx: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      vocabularyPreferences: {
-        ...prev.vocabularyPreferences,
-        signaturePhrases: prev.vocabularyPreferences.signaturePhrases.filter((_, i) => i !== idx)
-      }
-    }));
-  };
+  return <div className="space-y-8">
+    <header className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="krew-meta mb-2 flex items-center gap-2"><Dna className="h-4 w-4 text-krew-purple"/> CREATOR PROFILE</p><h1 className="font-display text-3xl font-semibold tracking-tight text-krew-text-primary sm:text-4xl">Your Creative DNA</h1><p className="mt-2 text-sm text-krew-text-secondary">Define the identity behind every production.</p></div><div className="flex flex-wrap gap-2"><Button variant="ghost" size="sm" onClick={() => setShowResetConfirm(true)} leftIcon={<RotateCcw className="h-4 w-4"/>}>Reset to default</Button><Button variant="secondary" size="sm" onClick={syncWithEngine} isLoading={isSyncing} leftIcon={<RefreshCw className="h-4 w-4"/>}>Sync status</Button><Button size="sm" onClick={save} isLoading={isSaving} disabled={!dirty || isLoading} leftIcon={<Save className="h-4 w-4"/>}>Save changes</Button></div></header>
 
-  const addBannedWord = () => {
-    if (!newBannedWord.trim()) return;
-    setFormData((prev) => ({
-      ...prev,
-      vocabularyPreferences: {
-        ...prev.vocabularyPreferences,
-        bannedWords: [...prev.vocabularyPreferences.bannedWords, newBannedWord.trim()]
-      }
-    }));
-    setNewBannedWord('');
-  };
+    <section className="grid gap-5 rounded-2xl bg-krew-surface p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6"><div className="flex min-w-0 items-center gap-4"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-krew-purple/15 font-display text-lg font-semibold text-krew-lavender">{(formData.creatorName || 'C').trim().charAt(0).toUpperCase()}</div><div className="min-w-0"><h2 className="truncate font-display text-lg font-semibold text-krew-text-primary">{formData.creatorName || 'Creator name'}</h2><p className="truncate text-sm text-krew-text-secondary">{formData.contentNiche.filter(Boolean).join(' · ') || 'Add your content niche'} · {formData.communicationTone.primary || 'Add a brand tone'}</p></div></div><div className="flex items-center gap-4"><div className="w-36"><div className="mb-2 flex justify-between text-xs"><span className="text-krew-text-muted">Profile completeness</span><span className="font-mono text-krew-lavender">{completeness}%</span></div><div className="h-1.5 overflow-hidden rounded-full bg-krew-bg"><div className="h-full rounded-full bg-krew-purple transition-all" style={{ width: `${completeness}%` }}/></div></div></div></section>
 
-  const removeBannedWord = (idx: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      vocabularyPreferences: {
-        ...prev.vocabularyPreferences,
-        bannedWords: prev.vocabularyPreferences.bannedWords.filter((_, i) => i !== idx)
-      }
-    }));
-  };
-
-  return (
-    <div className="space-y-8">
-      {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-krew-border/60 pb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono uppercase tracking-wider text-krew-lavender bg-krew-purple/15 px-2.5 py-0.5 rounded-full border border-krew-purple/30 flex items-center gap-1.5">
-              <Dna className="w-3.5 h-3.5 text-krew-purple" />
-              <span>USP 01 • SHARED MEMORY CORE</span>
-            </span>
-            <StatusPill type="architected" label="Memory Engine Scaffolding" />
-          </div>
-          <h1 className="font-display font-bold text-3xl text-white tracking-tight">
-            Creator DNA Memory Engine
-          </h1>
-          <p className="text-xs sm:text-sm text-krew-text-secondary mt-1 max-w-2xl">
-            A persistent, multi-modal representation of your authentic identity. All 6 specialised agents tap into this engine to guarantee tonal consistency and brand fidelity.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowResetConfirm(true)}
-            leftIcon={<RotateCcw className="w-4 h-4" />}
-          >
-            Reset Blueprint
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={syncWithEngine}
-            isLoading={isSyncing}
-            leftIcon={<RefreshCw className="w-4 h-4 text-krew-cyan" />}
-          >
-            Sync Memory
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleSave}
-            isLoading={isSaving}
-            leftIcon={<Save className="w-4 h-4" />}
-          >
-            Save DNA
-          </Button>
-        </div>
-      </div>
-
-      <div className={`rounded-xl border px-4 py-3 text-sm ${error ? 'border-rose-500/40 bg-rose-500/10 text-rose-200' : isBackendSaved ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200' : 'border-amber-500/30 bg-amber-500/10 text-amber-200'}`}>
-        {isLoading ? 'Loading Creator DNA from backend…' : error ? `${error} Unsaved edits remain cached locally.` : isBackendSaved ? `Saved to backend · ${metadata?.persistenceMode || 'backend'} storage${metadata?.persistenceAcrossRestarts === false ? ' (temporary; lost when server restarts)' : ''}${metadata ? ` · profile version ${metadata.profileVersion}` : ''}` : 'Creator DNA is cached locally and has not been confirmed by the backend.'}
-      </div>
-
-      {/* DNA Health / Visualizer Banner */}
-      <Card padding="md" className="border-krew-purple/40 bg-gradient-to-r from-krew-card via-krew-charcoal to-krew-surface">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-3 rounded-xl bg-krew-surface/60 border border-krew-border">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-krew-text-muted">
-              Memory Fidelity
-            </span>
-            <p className="text-xl font-bold font-display text-white mt-1">98.4% Profile Depth</p>
-            <p className="text-[11px] text-emerald-400 mt-0.5">High Context Completeness</p>
-          </div>
-          <div className="p-3 rounded-xl bg-krew-surface/60 border border-krew-border">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-krew-text-muted">
-              Agent Synchronization
-            </span>
-            <p className="text-xl font-bold font-display text-white mt-1">6/6 Agents Synced</p>
-            <p className="text-[11px] text-krew-lavender mt-0.5">Live Backbone Active</p>
-          </div>
-          <div className="p-3 rounded-xl bg-krew-surface/60 border border-krew-border">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-krew-text-muted">
-              Vocabulary Rules
-            </span>
-            <p className="text-xl font-bold font-display text-white mt-1">
-              {formData.vocabularyPreferences.signaturePhrases.length} Phrases / {formData.vocabularyPreferences.bannedWords.length} Banned
-            </p>
-            <p className="text-[11px] text-krew-cyan mt-0.5">Active Guardrails</p>
-          </div>
-          <div className="p-3 rounded-xl bg-krew-surface/60 border border-krew-border">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-krew-text-muted">
-              Visual Palette
-            </span>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="w-6 h-6 rounded-lg border border-krew-border" style={{ backgroundColor: formData.visualIdentity.brandColors.primary }} title="Primary" />
-              <span className="w-6 h-6 rounded-lg border border-krew-border" style={{ backgroundColor: formData.visualIdentity.brandColors.secondary }} title="Secondary" />
-              <span className="w-6 h-6 rounded-lg border border-krew-border" style={{ backgroundColor: formData.visualIdentity.brandColors.accent }} title="Accent" />
-              <span className="text-xs text-white font-mono ml-1">{formData.visualIdentity.brandColors.accent}</span>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      <Modal isOpen={showResetConfirm} onClose={() => setShowResetConfirm(false)} title="Reset Creator DNA?" subtitle="This replaces your current profile with the default blueprint.">
-        <div className="flex justify-end gap-3"><Button variant="outline" onClick={() => setShowResetConfirm(false)}>Cancel</Button><Button variant="danger" onClick={async () => { await resetProfile(); setShowResetConfirm(false); }}>Reset Blueprint</Button></div>
-      </Modal>
-
-      {/* Profile Form Sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Section 1: Creator Star Core */}
-        <Card padding="lg" className="space-y-5">
-          <div className="flex items-center gap-2 border-b border-krew-border/60 pb-3">
-            <BookOpen className="w-5 h-5 text-krew-purple" />
-            <h3 className="font-display text-lg font-bold text-white">
-              Core Identity & Positioning
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              label="Creator Name"
-              value={formData.creatorName}
-              onChange={(e) => setFormData({ ...formData, creatorName: e.target.value })}
-            />
-            <Input
-              label="Handle / Brand ID"
-              value={formData.handle}
-              onChange={(e) => setFormData({ ...formData, handle: e.target.value })}
-            />
-          </div>
-
-          <Textarea
-            label="Creator Bio / Manifesto"
-            value={formData.bio}
-            onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-            rows={3}
-          />
-
-          <div>
-            <label className="block text-xs font-medium uppercase tracking-wider text-krew-text-secondary mb-2">
-              Content Niches
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {formData.contentNiche.map((niche, i) => (
-                <Badge key={i} variant="purple" size="sm">
-                  {niche}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </Card>
-
-        {/* Section 2: Communication Tone & Pacing */}
-        <Card padding="lg" className="space-y-5">
-          <div className="flex items-center gap-2 border-b border-krew-border/60 pb-3">
-            <Mic2 className="w-5 h-5 text-krew-cyan" />
-            <h3 className="font-display text-lg font-bold text-white">
-              Communication Tone & Persona
-            </h3>
-          </div>
-
-          <Input
-            label="Primary Tone Descriptor"
-            value={formData.communicationTone.primary}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                communicationTone: { ...formData.communicationTone, primary: e.target.value }
-              })
-            }
-          />
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-krew-text-secondary mb-1.5">
-                Energy Level
-              </label>
-              <select
-                value={formData.communicationTone.energyLevel}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    communicationTone: {
-                      ...formData.communicationTone,
-                      energyLevel: e.target.value as any
-                    }
-                  })
-                }
-                className="w-full rounded-xl bg-krew-surface border border-krew-border px-3 py-2.5 text-xs text-white focus:outline-none focus:border-krew-purple"
-              >
-                <option value="High Energy & Cinematic">High Energy & Cinematic</option>
-                <option value="Conversational & Witty">Conversational & Witty</option>
-                <option value="Calm & Reflective">Calm & Reflective</option>
-                <option value="Technical & Deep">Technical & Deep</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-krew-text-secondary mb-1.5">
-                Storytelling Pacing
-              </label>
-              <select
-                value={formData.storytellingStyle.pacing}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    storytellingStyle: {
-                      ...formData.storytellingStyle,
-                      pacing: e.target.value as any
-                    }
-                  })
-                }
-                className="w-full rounded-xl bg-krew-surface border border-krew-border px-3 py-2.5 text-xs text-white focus:outline-none focus:border-krew-purple"
-              >
-                <option value="Fast-paced punchy">Fast-paced punchy</option>
-                <option value="Cinematic documentary">Cinematic documentary</option>
-                <option value="Step-by-step masterclass">Step-by-step masterclass</option>
-              </select>
-            </div>
-          </div>
-
-          <Textarea
-            label="Cold Hook Style Directive"
-            value={formData.storytellingStyle.hookStyle}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                storytellingStyle: { ...formData.storytellingStyle, hookStyle: e.target.value }
-              })
-            }
-            rows={2}
-          />
-        </Card>
-
-        {/* Section 3: Vocabulary Preferences & Guardrails */}
-        <Card padding="lg" className="space-y-5">
-          <div className="flex items-center gap-2 border-b border-krew-border/60 pb-3">
-            <Sparkles className="w-5 h-5 text-amber-400" />
-            <h3 className="font-display text-lg font-bold text-white">
-              Signature Vocabulary & Guardrails
-            </h3>
-          </div>
-
-          {/* Signature Phrases */}
-          <div className="space-y-2">
-            <label className="block text-xs font-medium uppercase tracking-wider text-krew-text-secondary">
-              Signature Phrases (Used by The Writer)
-            </label>
-            <div className="space-y-2">
-              {formData.vocabularyPreferences.signaturePhrases.map((phrase, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between p-2 rounded-lg bg-krew-surface border border-krew-border text-xs"
-                >
-                  <span className="text-white">"{phrase}"</span>
-                  <button
-                    onClick={() => removePhrase(i)}
-                    className="text-krew-text-muted hover:text-rose-400"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2 pt-2">
-              <input
-                type="text"
-                value={newPhrase}
-                onChange={(e) => setNewPhrase(e.target.value)}
-                placeholder="Add signature phrase..."
-                className="flex-1 rounded-xl bg-krew-surface border border-krew-border px-3 py-2 text-xs text-white placeholder:text-krew-text-muted focus:outline-none focus:border-krew-purple"
-              />
-              <Button variant="outline" size="sm" onClick={addPhrase} leftIcon={<Plus className="w-3 h-3" />}>
-                Add
-              </Button>
-            </div>
-          </div>
-
-          {/* Banned Words */}
-          <div className="space-y-2 pt-2 border-t border-krew-border/60">
-            <label className="block text-xs font-medium uppercase tracking-wider text-rose-400">
-              Banned Words & Clichés (Strict Guardrails)
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {formData.vocabularyPreferences.bannedWords.map((word, i) => (
-                <span
-                  key={i}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono"
-                >
-                  <span>{word}</span>
-                  <button onClick={() => removeBannedWord(i)} className="hover:text-white">
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2 pt-2">
-              <input
-                type="text"
-                value={newBannedWord}
-                onChange={(e) => setNewBannedWord(e.target.value)}
-                placeholder="Add banned word / cliché..."
-                className="flex-1 rounded-xl bg-krew-surface border border-krew-border px-3 py-2 text-xs text-white placeholder:text-krew-text-muted focus:outline-none focus:border-rose-500"
-              />
-              <Button variant="danger" size="sm" onClick={addBannedWord} leftIcon={<Plus className="w-3 h-3" />}>
-                Ban
-              </Button>
-            </div>
-          </div>
-        </Card>
-
-        {/* Section 4: Visual Identity & Brand Directives */}
-        <Card padding="lg" className="space-y-5">
-          <div className="flex items-center gap-2 border-b border-krew-border/60 pb-3">
-            <Palette className="w-5 h-5 text-krew-lavender" />
-            <h3 className="font-display text-lg font-bold text-white">
-              Visual Identity & Thumbnail Directives
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Input
-              label="Primary Background"
-              value={formData.visualIdentity.brandColors.primary}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  visualIdentity: {
-                    ...formData.visualIdentity,
-                    brandColors: { ...formData.visualIdentity.brandColors, primary: e.target.value }
-                  }
-                })
-              }
-            />
-            <Input
-              label="Secondary Charcoal"
-              value={formData.visualIdentity.brandColors.secondary}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  visualIdentity: {
-                    ...formData.visualIdentity,
-                    brandColors: { ...formData.visualIdentity.brandColors, secondary: e.target.value }
-                  }
-                })
-              }
-            />
-            <Input
-              label="Accent Glow"
-              value={formData.visualIdentity.brandColors.accent}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  visualIdentity: {
-                    ...formData.visualIdentity,
-                    brandColors: { ...formData.visualIdentity.brandColors, accent: e.target.value }
-                  }
-                })
-              }
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium uppercase tracking-wider text-krew-text-secondary mb-1.5">
-              Default Thumbnail Direction (Cinematographer)
-            </label>
-            <select
-              value={formData.visualIdentity.thumbnailStyle}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  visualIdentity: {
-                    ...formData.visualIdentity,
-                    thumbnailStyle: e.target.value as any
-                  }
-                })
-              }
-              className="w-full rounded-xl bg-krew-surface border border-krew-border px-3 py-2.5 text-xs text-white focus:outline-none focus:border-krew-purple"
-            >
-              <option value="Bold Expressive Face + High Contrast">
-                Bold Expressive Face + High Contrast (Recommended)
-              </option>
-              <option value="Minimalist Aesthetic">Minimalist Aesthetic</option>
-              <option value="Documentary Film Still">Documentary Film Still</option>
-              <option value="Infographic Overlay">Infographic Overlay</option>
-            </select>
-          </div>
-
-          <Input
-            label="Typography Spec"
-            value={formData.visualIdentity.fontPreference}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                visualIdentity: { ...formData.visualIdentity, fontPreference: e.target.value }
-              })
-            }
-          />
-        </Card>
-      </div>
+    <div className={`flex items-start gap-3 rounded-xl px-4 py-3 text-sm ${error || !isBackendSaved ? 'bg-krew-status-warning/10 text-krew-status-warning' : 'bg-krew-status-success/10 text-krew-status-success'}`} role={error ? 'alert' : 'status'}>
+      {error || !isBackendSaved ? <CircleAlert className="mt-0.5 h-4 w-4 shrink-0"/> : <Check className="mt-0.5 h-4 w-4 shrink-0"/>}
+      <div><p>{isLoading ? 'Loading your Creator DNA profile…' : error ? `${error} Your latest edits remain cached locally.` : isBackendSaved ? `Creator DNA configuration saved — live 6-agent sync reserved for live sprint${metadata?.persistenceAcrossRestarts === false ? ' · backend storage is temporary' : ''}.` : 'Offline cache · changes are saved locally on this device until the backend is available.'}</p>{dirty && <p className="mt-1 text-xs">You have unsaved changes.</p>}{validationError && <p className="mt-1 text-xs text-krew-status-error">{validationError}</p>}</div>
     </div>
-  );
+
+    <div className="grid items-start gap-7 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <section className="min-w-0"><Tabs tabs={sections} activeTab={section} onChange={id => setSection(id as Section)} className="mb-6 w-full sm:w-fit"/>
+        <div className="rounded-2xl bg-krew-surface p-5 sm:p-7">
+          {section === 'identity' && <div className="space-y-5"><SectionTitle number="01" title="Core Identity" note="The foundation of your creator profile."/><div className="grid gap-4 sm:grid-cols-2"><Input label="Creator name" value={formData.creatorName} onChange={e => setField('creatorName', e.target.value)}/><Input label="Handle / brand ID" value={formData.handle} onChange={e => setField('handle', e.target.value)}/></div><Textarea label="Bio / creative manifesto" value={formData.bio} onChange={e => setField('bio', e.target.value)} rows={3}/><Input label="Content niches · comma separated" value={formData.contentNiche.join(', ')} onChange={e => setField('contentNiche', splitList(e.target.value))}/><Input label="Target audience" value={formData.targetAudience.demographics} onChange={e => setField('targetAudience', { ...formData.targetAudience, demographics: e.target.value })}/><div><p className="mb-2 text-xs font-medium text-krew-text-secondary">Primary platforms</p><div className="flex flex-wrap gap-2">{(['YouTube', 'Instagram', 'LinkedIn', 'Facebook', 'TikTok', 'Podcast'] as const).map(platform => <button type="button" key={platform} aria-pressed={formData.primaryPlatforms.includes(platform)} onClick={() => setField('primaryPlatforms', formData.primaryPlatforms.includes(platform) ? formData.primaryPlatforms.filter(item => item !== platform) : [...formData.primaryPlatforms, platform])} className={`rounded-full px-3 py-1.5 text-xs transition-colors ${formData.primaryPlatforms.includes(platform) ? 'bg-krew-purple/20 text-krew-lavender' : 'bg-krew-bg text-krew-text-muted'}`}>{platform}</button>)}</div></div></div>}
+
+          {section === 'voice' && <div className="space-y-5"><SectionTitle number="02" title="Voice & Personality" note="Set the sound and rhythm of your storytelling."/><Input label="Brand tone" value={formData.communicationTone.primary} onChange={e => setField('communicationTone', { ...formData.communicationTone, primary: e.target.value })}/><div className="grid gap-4 sm:grid-cols-2"><Select label="Energy level" value={formData.communicationTone.energyLevel} options={['High Energy & Cinematic', 'Conversational & Witty', 'Calm & Reflective', 'Technical & Deep']} onChange={value => setField('communicationTone', { ...formData.communicationTone, energyLevel: value as CreatorDnaProfile['communicationTone']['energyLevel'] })}/><Select label="Formality" value={formData.communicationTone.formality} options={['Casual', 'Semi-formal', 'Story-driven']} onChange={value => setField('communicationTone', { ...formData.communicationTone, formality: value as CreatorDnaProfile['communicationTone']['formality'] })}/><Select label="Storytelling pace" value={formData.storytellingStyle.pacing} options={['Fast-paced punchy', 'Cinematic documentary', 'Step-by-step masterclass']} onChange={value => setField('storytellingStyle', { ...formData.storytellingStyle, pacing: value as CreatorDnaProfile['storytellingStyle']['pacing'] })}/><Input label="Audience interests · comma separated" value={formData.targetAudience.interests.join(', ')} onChange={e => setField('targetAudience', { ...formData.targetAudience, interests: splitList(e.target.value) })}/></div><Textarea label="Hook style" value={formData.storytellingStyle.hookStyle} onChange={e => setField('storytellingStyle', { ...formData.storytellingStyle, hookStyle: e.target.value })} rows={3}/><Textarea label="Call to action preference" value={formData.storytellingStyle.callToActionPreference} onChange={e => setField('storytellingStyle', { ...formData.storytellingStyle, callToActionPreference: e.target.value })} rows={2}/><Input label="Audience pain points · comma separated" value={formData.targetAudience.painPoints.join(', ')} onChange={e => setField('targetAudience', { ...formData.targetAudience, painPoints: splitList(e.target.value) })}/></div>}
+
+          {section === 'vocabulary' && <div className="space-y-6"><SectionTitle number="03" title="Signature Vocabulary" note="Keep your language recognisable and your guardrails clear."/><div><p className="mb-3 text-sm font-medium text-krew-text-primary">Phrases that sound like you</p><div className="flex flex-wrap gap-2">{formData.vocabularyPreferences.signaturePhrases.map((phrase, index) => <span key={`${phrase}-${index}`} className="inline-flex items-center gap-2 rounded-full bg-krew-bg px-3 py-2 text-xs text-krew-text-secondary">“{phrase}”<button type="button" aria-label={`Remove ${phrase}`} onClick={() => removeItem('signaturePhrases', index)} className="text-krew-text-muted hover:text-krew-status-error"><Trash2 className="h-3.5 w-3.5"/></button></span>)}</div><div className="mt-3 flex gap-2"><Input aria-label="New signature phrase" value={newPhrase} onChange={e => setNewPhrase(e.target.value)} placeholder="Add a signature phrase" onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addItem('signaturePhrases', newPhrase); } }}/><Button variant="secondary" onClick={() => addItem('signaturePhrases', newPhrase)} leftIcon={<Plus className="h-4 w-4"/>}>Add</Button></div></div><div><p className="mb-3 text-sm font-medium text-krew-text-primary">Words and clichés to avoid</p><div className="flex flex-wrap gap-2">{formData.vocabularyPreferences.bannedWords.map((word, index) => <span key={`${word}-${index}`} className="inline-flex items-center gap-2 rounded-full bg-krew-status-error/10 px-3 py-2 text-xs text-krew-status-error">{word}<button type="button" aria-label={`Remove ${word}`} onClick={() => removeItem('bannedWords', index)}><Trash2 className="h-3.5 w-3.5"/></button></span>)}</div><div className="mt-3 flex gap-2"><Input aria-label="New banned word" value={newBannedWord} onChange={e => setNewBannedWord(e.target.value)} placeholder="Add a word or cliché" onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addItem('bannedWords', newBannedWord); } }}/><Button variant="secondary" onClick={() => addItem('bannedWords', newBannedWord)} leftIcon={<Plus className="h-4 w-4"/>}>Add</Button></div></div><Select label="Jargon level" value={formData.vocabularyPreferences.jargonLevel} options={['Low', 'Moderate', 'High']} onChange={value => setField('vocabularyPreferences', { ...formData.vocabularyPreferences, jargonLevel: value as CreatorDnaProfile['vocabularyPreferences']['jargonLevel'] })}/></div>}
+
+          {section === 'visual' && <div className="space-y-5"><SectionTitle number="04" title="Visual Identity" note="A visual language to carry consistently across your productions."/><div className="grid gap-4 sm:grid-cols-3">{(['primary', 'secondary', 'accent'] as const).map(color => <div key={color} className="flex items-end gap-2"><Input label={`${color} colour`} value={formData.visualIdentity.brandColors[color]} onChange={e => setField('visualIdentity', { ...formData.visualIdentity, brandColors: { ...formData.visualIdentity.brandColors, [color]: e.target.value } })}/><span aria-hidden="true" className="mb-1 h-10 w-10 shrink-0 rounded-xl" style={{ backgroundColor: /^#[\da-f]{6}$/i.test(formData.visualIdentity.brandColors[color]) ? formData.visualIdentity.brandColors[color] : 'transparent' }}/></div>)}</div><Select label="Thumbnail / visual style" value={formData.visualIdentity.thumbnailStyle} options={['Bold Expressive Face + High Contrast', 'Minimalist Aesthetic', 'Documentary Film Still', 'Infographic Overlay']} onChange={value => setField('visualIdentity', { ...formData.visualIdentity, thumbnailStyle: value as CreatorDnaProfile['visualIdentity']['thumbnailStyle'] })}/><Input label="Typography preference" value={formData.visualIdentity.fontPreference} onChange={e => setField('visualIdentity', { ...formData.visualIdentity, fontPreference: e.target.value })}/></div>}
+        </div>
+      </section>
+
+      <aside className="xl:sticky xl:top-28"><div className="mb-3 flex items-center gap-2"><Eye className="h-4 w-4 text-krew-lavender"/><h2 className="font-display text-lg font-semibold text-krew-text-primary">Live brand preview</h2></div><div className="overflow-hidden rounded-2xl bg-krew-bg-secondary" style={{ borderColor: formData.visualIdentity.brandColors.accent, borderWidth: 1 }}><div className="relative aspect-[4/3] p-5" style={{ background: `radial-gradient(ellipse at 75% 15%, ${formData.visualIdentity.brandColors.accent}55, transparent 55%), linear-gradient(145deg, ${formData.visualIdentity.brandColors.primary}, ${formData.visualIdentity.brandColors.secondary})`, fontFamily: formData.visualIdentity.fontPreference || 'Inter, sans-serif' }}><span className="rounded-full bg-black/25 px-2.5 py-1 text-[10px] text-white/80">{formData.visualIdentity.thumbnailStyle}</span><div className="absolute bottom-5 left-5 right-5"><p className="text-xs text-white/70">{formData.creatorName || 'Creator name'} · {formData.communicationTone.energyLevel}</p><h3 className="mt-1 text-2xl font-bold leading-tight text-white">{formData.contentNiche[0] || 'Your next story'}</h3></div><div className="absolute right-5 top-16 flex gap-1.5">{Object.entries(formData.visualIdentity.brandColors).map(([name, color]) => <span key={name} title={`${name}: ${color}`} className="h-4 w-4 rounded-full ring-1 ring-white/40" style={{ backgroundColor: color }}/>)}</div></div><div className="space-y-3 p-4"><p className="text-xs text-krew-text-secondary">Tone <span className="text-krew-text-primary">{formData.communicationTone.primary || 'Not set'}</span> · Pace <span className="text-krew-text-primary">{formData.storytellingStyle.pacing}</span></p><blockquote className="border-l-2 pl-3 text-sm italic text-krew-text-primary" style={{ borderColor: formData.visualIdentity.brandColors.accent }}>{formData.vocabularyPreferences.signaturePhrases[0] ? `“${formData.vocabularyPreferences.signaturePhrases[0]}”` : 'Add a signature phrase to preview your voice.'}</blockquote><p className="font-mono text-[10px] text-krew-text-muted">TYPE · {formData.visualIdentity.fontPreference || 'Not set'}</p></div></div><p className="mt-3 text-xs leading-relaxed text-krew-text-muted">Preview reflects your current edits. Saving confirms the profile with the backend; live six-agent sync remains reserved for the live sprint.</p></aside>
+    </div>
+
+    <Modal isOpen={showResetConfirm} onClose={() => setShowResetConfirm(false)} title="Reset Creator DNA?" subtitle="This replaces your profile with the default blueprint and saves that reset through the backend."><div className="flex justify-end gap-3"><Button variant="outline" onClick={() => setShowResetConfirm(false)}>Cancel</Button><Button variant="danger" isLoading={isSaving} onClick={async () => { await resetProfile(); setShowResetConfirm(false); }}>Reset to default</Button></div></Modal>
+  </div>;
 };
 
+const SectionTitle: React.FC<{ number: string; title: string; note: string }> = ({ number, title, note }) => <div className="mb-6"><p className="krew-meta">SECTION {number}</p><h2 className="mt-1 font-display text-xl font-semibold text-krew-text-primary">{title}</h2><p className="mt-1 text-sm text-krew-text-secondary">{note}</p></div>;
+const Select: React.FC<{ label: string; value: string; options: string[]; onChange: (value: string) => void }> = ({ label, value, options, onChange }) => <label className="block space-y-1.5"><span className="text-xs font-medium text-krew-text-secondary">{label}</span><select value={value} onChange={event => onChange(event.target.value)} className="krew-focus w-full rounded-xl bg-krew-bg-secondary px-3.5 py-2.5 text-sm text-krew-text-primary">{options.map(option => <option key={option} value={option}>{option}</option>)}</select></label>;

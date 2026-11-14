@@ -1,96 +1,23 @@
 import React from 'react';
-import { Card } from '../common/Card';
+import { ArrowRight, Clapperboard, Film } from 'lucide-react';
+import { ContentProject } from '../../types/project.types';
 import { Badge } from '../common/Badge';
 import { Button } from '../common/Button';
-import { SAMPLE_PROJECTS } from '../../data/sampleProjects';
-import { ArrowRight, Film, Scissors, Share2, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export const ProductionOverviewCard: React.FC = () => {
+const stages = ['Strategy', 'Script', 'Clip Intelligence', 'Thumbnail', 'Distribution'];
+
+export const ProductionOverviewCard: React.FC<{ project?: ContentProject; unavailable?: boolean }> = ({ project, unavailable = false }) => {
   const navigate = useNavigate();
-  const currentProject = SAMPLE_PROJECTS[0]; // Lead production
-
-  const pipelineStages = [
-    { num: 1, label: 'Strategy Brief', agent: 'The Director', done: true },
-    { num: 2, label: 'Hook & Script', agent: 'The Writer', done: true },
-    { num: 3, label: 'Clip Intelligence', agent: 'The Editor', done: true },
-    { num: 4, label: 'Thumbnails', agent: 'The Cinematographer', done: true },
-    { num: 5, label: 'Distribution', agent: 'The Publicist', done: false }
-  ];
-
-  return (
-    <Card padding="lg" className="border-krew-purple/40 bg-gradient-to-br from-krew-card to-krew-charcoal relative overflow-hidden">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-krew-lavender bg-krew-purple/15 px-2.5 py-0.5 rounded-full border border-krew-purple/30">
-              Lead Production In Review
-            </span>
-            <Badge variant="cyan" size="xs">
-              Pipeline Stage 4/5
-            </Badge>
-          </div>
-          <h3 className="font-display text-xl sm:text-2xl font-bold text-white max-w-2xl leading-snug">
-            {currentProject.title}
-          </h3>
-          <p className="text-xs text-krew-text-secondary mt-1 max-w-xl">
-            {currentProject.description}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/clip-intelligence')}
-            leftIcon={<Scissors className="w-4 h-4 text-rose-400" />}
-          >
-            Review Clips (4)
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => navigate('/distribution')}
-            rightIcon={<ArrowRight className="w-4 h-4" />}
-          >
-            Open Distribution
-          </Button>
-        </div>
-      </div>
-
-      {/* Production Pipeline Progress Line */}
-      <div className="pt-4 border-t border-krew-border/60">
-        <p className="text-[11px] font-mono uppercase tracking-wider text-krew-text-muted mb-4">
-          Autonomous Production Pipeline Handoffs:
-        </p>
-
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {pipelineStages.map((stage) => (
-            <div
-              key={stage.num}
-              className={`p-3 rounded-xl border transition-colors ${
-                stage.done
-                  ? 'bg-krew-purple/10 border-krew-purple/40 text-white'
-                  : 'bg-krew-surface/60 border-krew-border text-krew-text-muted'
-              }`}
-            >
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="font-mono text-[10px]">STAGE 0{stage.num}</span>
-                {stage.done ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-krew-lavender" />
-                ) : (
-                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                )}
-              </div>
-              <p className="text-xs font-semibold">{stage.label}</p>
-              <p className="text-[10px] text-krew-text-secondary truncate mt-0.5">
-                {stage.agent}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Card>
-  );
+  const step = Math.min(Math.max(project?.pipelineStep || 1, 1), 5);
+  if (!project) return <div className="space-y-5"><div className="relative overflow-hidden rounded-3xl bg-krew-bg-secondary p-7 sm:p-10"><div className="pointer-events-none absolute -right-10 -top-16 h-64 w-64 rounded-full bg-krew-purple/10 blur-3xl"/><div className="relative max-w-xl"><span className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-krew-purple/15 text-krew-lavender"><Clapperboard className="h-5 w-5"/></span><p className="krew-meta">{unavailable ? 'PRODUCTION SPOTLIGHT' : 'YOUR NEXT FEATURE'}</p><h2 className="mt-2 font-display text-2xl font-semibold text-krew-text-primary">{unavailable ? 'Your productions could not load.' : 'Your next production starts here.'}</h2><p className="mt-2 text-sm text-krew-text-secondary">{unavailable ? 'Reconnect to your project library to see your latest production.' : 'Bring an idea, a video, or a rough brief into your studio. Your first step is yours to shape.'}</p><Button className="mt-5" onClick={() => navigate('/production')} rightIcon={<ArrowRight className="h-4 w-4"/>}>{unavailable ? 'Open Production Studio' : 'Start a Production'}</Button></div></div><section className="rounded-2xl bg-krew-surface px-5 py-5 sm:px-7"><div className="mb-4 flex items-center justify-between gap-3"><p className="text-sm font-medium text-krew-text-primary">Five stages from idea to release</p><span className="krew-meta">WORKFLOW GUIDE</span></div><div className="grid grid-cols-5 gap-2">{stages.map((stage, index) => <div key={stage}><div className="mb-2 h-1 rounded-full bg-white/[0.1]"/><p className="truncate text-[10px] text-krew-text-secondary sm:text-xs"><span className="font-mono">{index + 1}.</span> {stage}</p></div>)}</div><p className="mt-3 text-[10px] text-krew-text-muted">These are workflow stages, not completed AI runs. Agent execution is reserved for the live hackathon sprint.</p></section></div>;
+  const status = project.status.replace('_', ' ');
+  return <section className="relative isolate overflow-hidden rounded-3xl bg-krew-bg-secondary">
+    <div className="absolute inset-y-0 right-0 w-full sm:w-1/2" style={{ background: `radial-gradient(ellipse at 70% 45%, ${project.status === 'review_ready' ? 'rgba(56,189,248,.20)' : 'rgba(168,85,247,.22)'}, transparent 68%)` }}/>
+    <div className="relative grid min-h-60 lg:grid-cols-[1.2fr_.8fr]">
+      <div className="flex flex-col justify-center p-6 sm:p-9"><div className="mb-4 flex flex-wrap items-center gap-2"><span className="krew-meta">FEATURED PRODUCTION</span><Badge variant={project.status === 'review_ready' ? 'cyan' : project.status === 'approved' ? 'emerald' : 'purple'}>{status}</Badge></div><h2 className="max-w-2xl font-display text-2xl font-semibold tracking-tight text-krew-text-primary sm:text-3xl">{project.title}</h2><p className="mt-2 line-clamp-2 max-w-xl text-sm leading-relaxed text-krew-text-secondary">{project.description || 'A production brief ready for your next creative decision.'}</p><div className="mt-6 flex flex-wrap items-center gap-3"><Button size="sm" onClick={() => navigate('/production')}>Open Production <ArrowRight className="ml-2 h-4 w-4"/></Button><span className="krew-meta">{project.targetPlatforms.slice(0, 3).join(' · ') || 'Platforms not set'}</span></div></div>
+      <div className="relative hidden min-h-60 items-center justify-center lg:flex"><div className="absolute h-48 w-48 rounded-full border border-white/[0.07]"/><div className="absolute h-36 w-36 rounded-full border border-white/[0.07]"/><div className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-krew-card text-krew-lavender shadow-2xl"><Film className="h-10 w-10"/></div><span className="absolute bottom-7 right-8 font-mono text-xs text-krew-text-muted">KREW · PRODUCTION {project.id.slice(-4).toUpperCase()}</span></div>
+    </div>
+    <div className="relative border-t border-white/[0.07] px-5 py-5 sm:px-9"><div className="mb-4 flex items-center justify-between gap-3"><p className="text-sm font-medium text-krew-text-primary">Your production workflow</p><span className="krew-meta">Stage {step} of 5 · workflow guide</span></div><div className="grid grid-cols-5 gap-2">{stages.map((stage, index) => <div key={stage} className="min-w-0"><div className={`mb-2 h-1 rounded-full ${index + 1 <= step ? 'bg-krew-purple' : 'bg-white/[0.08]'}`}/><p className={`truncate text-[10px] sm:text-xs ${index + 1 === step ? 'text-krew-text-primary' : 'text-krew-text-muted'}`}><span className="font-mono">{index + 1}.</span> {stage}</p></div>)}</div><p className="mt-3 text-[10px] text-krew-text-muted">Workflow stages describe your production plan; agent execution is reserved for the live hackathon sprint.</p></div>
+  </section>;
 };
-
