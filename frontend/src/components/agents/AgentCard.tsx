@@ -1,109 +1,26 @@
 import React from 'react';
 import { AgentDefinition } from '../../types/agent.types';
-import { Card } from '../common/Card';
-import { Badge } from '../common/Badge';
-import { Button } from '../common/Button';
-import { Sparkles, ArrowRight, CheckCircle2, CircleDashed, Cpu } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
+import { AgentPortrait } from './AgentPortrait';
 
-interface AgentCardProps {
-  agent: AgentDefinition;
-  onInspect: (agent: AgentDefinition) => void;
-}
+interface AgentCardProps { agent: AgentDefinition; number?: string; onInspect: (agent: AgentDefinition) => void; featured?: boolean; }
 
-export const AgentCard: React.FC<AgentCardProps> = ({ agent, onInspect }) => {
-  return (
-    <Card
-      glowOnHover
-      padding="lg"
-      className="flex flex-col justify-between border-krew-border relative overflow-hidden group"
-    >
-      {/* Top Accent Gradient Bar */}
-      <div
-        className="absolute top-0 left-0 right-0 h-1 transition-all duration-300 group-hover:h-1.5"
-        style={{ backgroundColor: agent.color }}
-      />
-
-      <div>
-        {/* Header: Cinematic Role & Technical Identity */}
-        <div className="flex items-start justify-between gap-3 mb-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-mono uppercase tracking-wider text-krew-text-muted">
-                {agent.cinematicRole}
-              </span>
-              <span className="w-1 h-1 rounded-full bg-krew-border"></span>
-              <Badge variant="outline" size="xs">
-                {agent.technicalIdentity}
-              </Badge>
-            </div>
-            <h3 className="font-display text-2xl font-bold text-white tracking-tight">
-              {agent.name}
-            </h3>
-          </div>
-
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-white/10"
-            style={{ backgroundColor: `${agent.color}15`, color: agent.color }}
-          >
-            <Cpu className="w-5 h-5" />
-          </div>
-        </div>
-
-        {/* Personality & Tagline */}
-        <p className="text-xs text-krew-lavender font-mono mb-3">
-          "{agent.tagline}"
-        </p>
-        <p className="text-xs text-krew-text-secondary leading-relaxed mb-5">
-          <strong className="text-krew-text-primary">Tone & Persona:</strong> {agent.personality}
-        </p>
-
-        {/* Responsibilities */}
-        <div className="space-y-2 mb-6">
-          <p className="text-[11px] font-mono uppercase tracking-wider text-krew-text-muted">
-            Core Production Scope:
-          </p>
-          <ul className="space-y-1.5">
-            {agent.responsibilities.slice(0, 3).map((resp, idx) => (
-              <li key={idx} className="text-xs text-krew-text-secondary flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: agent.color }} />
-                <span>{resp}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Planned Capabilities Preview */}
-        <div className="p-3 rounded-xl bg-krew-surface/60 border border-krew-border/60 mb-6">
-          <div className="flex items-center justify-between text-[11px] font-mono text-krew-text-muted mb-2">
-            <span>Live Sprint Capabilities</span>
-            <span className="text-amber-400">Reserved (50%)</span>
-          </div>
-          <div className="space-y-1">
-            {agent.capabilities.map((cap, i) => (
-              <div key={i} className="flex items-center gap-1.5 text-xs text-krew-text-primary">
-                <CircleDashed className="w-3 h-3 text-krew-lavender shrink-0" />
-                <span className="truncate">{cap.title}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+export const AgentCard: React.FC<AgentCardProps> = ({ agent, number = '01', onInspect, featured = false }) => (
+  <button type="button" onClick={() => onInspect(agent)} className={`group relative block w-full overflow-hidden rounded-2xl bg-krew-surface text-left transition-transform duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-krew-purple ${featured ? 'md:col-span-2' : ''}`}>
+    <AgentPortrait agent={agent} className={featured ? 'aspect-[16/8]' : 'aspect-[4/3]'} />
+    <div className="relative p-5 sm:p-6">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <span className="font-mono text-xs text-krew-text-muted">AGENT {number}</span>
+        <span className="rounded-full bg-white/[0.06] px-2.5 py-1 text-[10px] text-krew-text-secondary">Contract Ready · Reserved for Live Sprint</span>
       </div>
-
-      {/* Footer Status and Inspection Button */}
-      <div className="pt-4 border-t border-krew-border/60 flex items-center justify-between gap-3">
-        <span className="text-[11px] font-mono text-krew-lavender">
-          {agent.statusNote}
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-          onClick={() => onInspect(agent)}
-        >
-          Contracts
-        </Button>
+      <h3 className="font-display text-xl font-semibold tracking-tight text-krew-text-primary sm:text-2xl">{agent.name}</h3>
+      <p className="mt-1 text-sm" style={{ color: agent.color }}>{agent.technicalIdentity}</p>
+      <p className="mt-3 max-w-xl text-sm leading-relaxed text-krew-text-secondary">{agent.tagline}</p>
+      <div className="mt-5 flex items-end justify-between gap-4">
+        <div className="flex flex-wrap gap-1.5">{(agent.traits || agent.personality.split(',').slice(0, 3)).slice(0, 4).map((trait) => <span key={trait} className="rounded-md bg-krew-bg-secondary px-2 py-1 text-[11px] text-krew-text-muted">{trait.trim().replace(/\.$/, '')}</span>)}</div>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-krew-text-secondary transition-colors group-hover:bg-krew-purple group-hover:text-white"><ArrowUpRight className="h-4 w-4" /></span>
       </div>
-    </Card>
-  );
-};
-
+    </div>
+    <span className="absolute bottom-0 left-0 h-0.5 w-full origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100" style={{ backgroundColor: agent.color }} />
+  </button>
+);

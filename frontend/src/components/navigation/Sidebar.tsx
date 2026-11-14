@@ -77,7 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     },
     {
       to: '/settings',
-      label: 'Settings & Integrations',
+      label: 'Settings',
       icon: <Settings className="w-5 h-5" />,
       badge: null
     }
@@ -96,19 +96,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* Persistent Sidebar */}
       <aside
         className={cn(
-          'fixed top-0 bottom-0 left-0 z-40 w-64 bg-krew-charcoal border-r border-krew-border flex flex-col justify-between transition-transform duration-300 lg:translate-x-0',
+          'fixed top-0 bottom-0 left-0 z-40 w-64 bg-krew-bg-secondary border-r border-krew-border flex flex-col justify-between transition-transform duration-300 lg:translate-x-0',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* Brand Header */}
-        <div className="h-20 px-6 flex items-center border-b border-krew-border/60">
+        <div className="h-20 px-5 flex items-center">
           <KrewLogo size="sm" showTagline />
         </div>
 
         {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-          <div className="px-3 pb-2 text-[10px] font-mono uppercase tracking-wider text-krew-text-muted">
-            Production Studio
+          <div className="px-3 pb-3 pt-1 text-xs font-medium text-krew-text-muted">
+            Studio
           </div>
           {navItems.map((item) => (
             <NavLink
@@ -117,10 +117,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               onClick={onClose}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group',
+                  'relative flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group',
                   isActive
-                    ? 'bg-krew-purple/15 text-white border border-krew-purple/40 shadow-sm'
-                    : 'text-krew-text-secondary hover:text-white hover:bg-white/5'
+                    ? 'bg-white/[0.045] text-krew-text-primary before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:rounded-full before:bg-krew-purple'
+                    : 'text-krew-text-secondary hover:text-white hover:bg-white/[0.04]'
                 )
               }
             >
@@ -141,10 +141,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   {item.badge && (
                     <span
                       className={cn(
-                        'text-[10px] font-mono px-2 py-0.5 rounded-full border',
+                    'text-[10px] font-mono px-2 py-0.5 rounded-full',
                         isActive
-                          ? 'border-krew-purple/40 bg-krew-purple/20 text-krew-lavender'
-                          : 'border-krew-border bg-krew-surface text-krew-text-muted'
+                          ? 'bg-krew-purple/15 text-krew-lavender'
+                          : 'bg-krew-surface text-krew-text-muted'
                       )}
                     >
                       {item.badge}

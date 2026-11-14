@@ -6,22 +6,20 @@ import {
   Menu,
   Search,
   Bell,
-  Sparkles,
   Clapperboard,
-  CheckCircle,
-  Clock,
-  Layers,
-  ChevronDown
+  LogOut,
+  UserRound
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchModal, setShowSearchModal] = useState(false);
@@ -29,77 +27,69 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   const notifications = [
     {
       id: 'notif-1',
-      title: 'The Director completed Production Brief',
-      time: '12m ago',
-      agent: 'The Director',
+      title: 'Your production workspace is ready to use.',
+      time: 'Studio',
+      agent: 'KREW',
       read: false
     },
     {
       id: 'notif-2',
-      title: 'The Editor flagged 4 viral clip segments',
-      time: '1h ago',
-      agent: 'The Editor',
+      title: 'Clip intelligence previews use sample data.',
+      time: 'Preview',
+      agent: 'KREW',
       read: false
     },
     {
       id: 'notif-3',
-      title: 'Creator DNA Memory Engine in sync',
-      time: '3h ago',
-      agent: 'Memory Engine',
+      title: 'Agent execution is reserved for the live hackathon sprint.',
+      time: 'Notice',
+      agent: 'KREW',
       read: true
     }
   ];
+  const pageTitles: Record<string, string> = {
+    '/dashboard': 'Command Center', '/creator-dna': 'My Creator DNA', '/crew': 'Meet the KREW',
+    '/production': 'Production Studio', '/clip-intelligence': 'Clip Intelligence', '/thumbnail-studio': 'Thumbnail Studio',
+    '/distribution': 'Distribution Desk', '/growth-insights': 'Growth Insights', '/settings': 'Settings'
+  };
+  const pageTitle = pageTitles[location.pathname] || 'Studio';
 
   return (
-    <header className="sticky top-0 z-20 h-20 bg-krew-bg/80 backdrop-blur-md border-b border-krew-border/60 px-4 sm:px-8 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-20 min-h-20 bg-krew-bg/85 backdrop-blur-xl border-b border-krew-border/60 px-4 sm:px-8 flex items-center justify-between gap-3">
       {/* Left: Mobile hamburger & Creator Greeting */}
       <div className="flex items-center gap-3">
-        <button
+        <button aria-label="Open navigation menu"
           onClick={onToggleSidebar}
           className="p-2 lg:hidden text-krew-text-secondary hover:text-white rounded-lg hover:bg-white/5"
         >
           <Menu className="w-5 h-5" />
         </button>
 
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="font-display font-bold text-white text-base sm:text-lg">
-              Namaste, {user?.name.split(' ')[0] || 'Star'}
-            </h2>
-            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-mono text-krew-lavender bg-krew-purple/15 px-2 py-0.5 rounded-full border border-krew-purple/30">
-              <Sparkles className="w-2.5 h-2.5" />
-              THE STAR
-            </span>
-          </div>
-          <p className="text-xs text-krew-text-muted hidden sm:block">
-            Studio Stage Alpha • GeNarrative Clash 2026
-          </p>
-        </div>
+        <div><h2 className="font-display font-semibold text-krew-text-primary text-base sm:text-lg">{pageTitle}</h2><p className="hidden text-xs text-krew-text-muted sm:block">Your production workspace</p></div>
       </div>
 
       {/* Middle: Quick Search Trigger */}
-      <div className="hidden md:flex items-center max-w-xs w-full">
-        <div
-          onClick={() => setShowSearchModal(true)}
-          className="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl bg-krew-surface border border-krew-border text-krew-text-muted hover:text-krew-text-secondary hover:border-krew-borderLight cursor-pointer text-xs"
+        <div className="hidden md:flex items-center max-w-xs w-full">
+        <button type="button" aria-label="Search the studio" onClick={() => setShowSearchModal(true)}
+          className="krew-focus w-full flex items-center gap-2 px-3 py-1.5 rounded-xl bg-krew-surface text-krew-text-muted hover:text-krew-text-secondary cursor-pointer text-xs"
         >
           <Search className="w-4 h-4" />
-          <span className="flex-1">Search productions, scripts, clips...</span>
+          <span className="flex-1">Search the studio...</span>
           <kbd className="font-mono text-[10px] bg-krew-card px-1.5 py-0.5 rounded border border-krew-border">
             ⌘K
           </kbd>
-        </div>
+        </button>
       </div>
 
       {/* Right Actions: Pre-Event Pill, Notifications, New Production */}
       <div className="flex items-center gap-3">
-        <div className="hidden xl:block">
-          <StatusPill type="architected" label="Pre-Event 50% Foundation" />
-        </div>
+        <div className="hidden lg:block"><StatusPill type="architected" label="PRE-EVENT FOUNDATION · 50%" /></div>
+
+        <button type="button" aria-label="Search the studio" onClick={() => setShowSearchModal(true)} className="krew-focus rounded-xl p-2 text-krew-text-secondary hover:bg-white/5 hover:text-white md:hidden"><Search className="h-4 w-4" /></button>
 
         {/* Notifications Dropdown */}
         <div className="relative">
-          <button
+          <button aria-label="Notifications" aria-expanded={showNotifications}
             onClick={() => setShowNotifications(!showNotifications)}
             className="relative p-2 rounded-xl bg-krew-surface border border-krew-border text-krew-text-secondary hover:text-white hover:border-krew-borderLight transition-colors"
           >
@@ -111,7 +101,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
             <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-krew-card border border-krew-border shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-center justify-between pb-3 border-b border-krew-border/60 mb-3">
                 <span className="text-xs font-semibold text-white uppercase tracking-wider font-mono">
-                  Agent Feed
+                  Studio notices
                 </span>
                 <span className="text-[10px] text-krew-text-muted font-mono">
                   3 updates
@@ -136,6 +126,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         </div>
 
         {/* New Production CTA */}
+        <div className="hidden sm:flex items-center gap-2 text-xs text-krew-text-secondary"><UserRound className="h-4 w-4 text-krew-text-muted" /><span className="max-w-28 truncate">{user?.name || 'Creator'}</span><button onClick={logout} title="Log out" aria-label="Log out" className="rounded-lg p-2 text-krew-text-muted transition-colors hover:bg-white/5 hover:text-krew-text-primary"><LogOut className="h-4 w-4" /></button></div>
         <Button
           variant="primary"
           size="sm"

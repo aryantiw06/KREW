@@ -1,9 +1,8 @@
 import React from 'react';
 import { AgentDefinition } from '../../types/agent.types';
 import { Modal } from '../common/Modal';
-import { Badge } from '../common/Badge';
 import { StatusPill } from '../common/StatusPill';
-import { Cpu, ArrowRight, Dna, Code2, Sparkles, CheckCircle2 } from 'lucide-react';
+import { AgentPortrait } from './AgentPortrait';
 
 interface AgentDetailModalProps {
   agent: AgentDefinition | null;
@@ -22,17 +21,16 @@ export const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`${agent.name} — Technical Architecture`}
-      subtitle={`${agent.cinematicRole} • ${agent.technicalIdentity}`}
+      title={`${agent.name} — Character Dossier`}
+      subtitle={`${agent.cinematicRole} · ${agent.technicalIdentity}`}
       maxWidth="2xl"
     >
       <div className="space-y-6">
         {/* Status Pill & Boundary Notice */}
-        <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-krew-purple/10 border border-krew-purple/20">
-          <StatusPill type="live_reserved" label="Live Sprint AI Implementation" />
-          <span className="text-[11px] font-mono text-krew-lavender">
-            Status: {agent.statusNote}
-          </span>
+        <AgentPortrait agent={agent} className="rounded-xl" />
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-krew-surface p-3">
+          <StatusPill type="live_reserved" label="Contract Ready · Reserved for Live Sprint" />
+          <span className="text-[11px] font-mono text-krew-text-muted">Illustrative role contract</span>
         </div>
 
         {/* Personality & Purpose */}
@@ -41,34 +39,29 @@ export const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
             Production Personality & Philosophy
           </h5>
           <p className="text-sm text-krew-text-secondary leading-relaxed bg-krew-surface p-3.5 rounded-xl border border-krew-border">
-            {agent.personality}
+            {agent.personality} {agent.traits?.length ? `Traits: ${agent.traits.join(' · ')}.` : ''}
           </p>
         </div>
 
         {/* Full Capabilities List */}
         <div className="space-y-3">
           <h5 className="text-xs font-mono uppercase tracking-wider text-krew-text-muted">
-            Sprint Capabilities & Autonomous Tool Execution
+            Core responsibilities
           </h5>
           <div className="space-y-2">
-            {agent.capabilities.map((cap, i) => (
+            {agent.responsibilities.map((responsibility, i) => (
               <div
                 key={i}
-                className="p-3 rounded-xl bg-krew-surface border border-krew-border flex items-start justify-between gap-3"
+                className="flex items-start gap-3 rounded-xl bg-krew-surface px-3 py-2.5 text-sm text-krew-text-secondary"
               >
-                <div>
-                  <h6 className="text-sm font-semibold text-white">{cap.title}</h6>
-                  <p className="text-xs text-krew-text-secondary mt-0.5">
-                    {cap.description}
-                  </p>
-                </div>
-                <Badge variant="purple" size="xs">
-                  {cap.implementationPhase}
-                </Badge>
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: agent.color }} />
+                <span>{responsibility}</span>
               </div>
             ))}
           </div>
         </div>
+
+        <div className="rounded-xl bg-krew-surface p-4 text-sm text-krew-text-secondary"><h5 className="mb-1 text-xs font-mono text-krew-lavender">CREATOR DNA RELATIONSHIP</h5>This role is designed to use the creator’s saved voice, audience, and visual preferences as context. Live agent access and memory-driven execution are reserved for the live hackathon sprint.</div>
 
         {/* Input & Output Data Contracts */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -101,25 +94,6 @@ export const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
           </div>
         </div>
 
-        {/* Extension Point Code Snippet */}
-        <div className="p-4 rounded-xl bg-krew-bg border border-krew-border space-y-2">
-          <div className="flex items-center justify-between text-xs font-mono text-krew-text-muted">
-            <span className="flex items-center gap-1.5">
-              <Code2 className="w-4 h-4 text-krew-purple" />
-              <span>Backend Contract Binding:</span>
-            </span>
-            <span className="text-[11px] text-krew-lavender">
-              backend/src/services/{agent.role}Agent/
-            </span>
-          </div>
-          <pre className="text-[11px] font-mono text-krew-text-secondary overflow-x-auto p-2 bg-krew-charcoal rounded-lg border border-krew-border/40">
-{`// Live Sprint Extension Contract
-export interface I${agent.name.replace(/\s+/g, '')}Service {
-  execute(context: ProductionContext): Promise<${agent.technicalIdentity.replace(/\s+/g, '')}Result>;
-  bindCreatorDna(memory: CreatorDnaProfile): void;
-}`}
-          </pre>
-        </div>
       </div>
     </Modal>
   );

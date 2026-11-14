@@ -37,6 +37,12 @@
   .krew-surface { @apply rounded-2xl bg-krew-card; }
 }
 
+@keyframes studio-page-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.studio-page-enter { animation: studio-page-enter 220ms ease-out both; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }

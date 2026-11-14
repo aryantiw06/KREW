@@ -32,6 +32,9 @@ export interface AgentDefinition {
   outputContract: string[];
   collaborationWith: AgentRole[];
   statusNote: string;
+  traits?: string[];
+  number?: string;
+  availability?: string;
 }
 
 export interface AgentCollaborationEdge {
