@@ -14,5 +14,46 @@ export interface IContentProject {
   createdAt: Date;
   updatedAt: Date;
   fileMetadata?: { mimeType?: string; originalName?: string; fileSizeBytes?: number };
+  productionBrief?: {
+    objective?: string;
+    targetAudience?: string;
+    contentFormat?: string;
+    tone?: string;
+  };
+  creativeWorkspace?: {
+    idea?: string;
+    outline?: string;
+    scriptDraft?: string;
+    talkingPoints?: string[];
+    creativeNotes?: string;
+  };
+  thumbnailWorkspace?: {
+    activeVersionId: string;
+    versions: Array<{
+      id: string;
+      name: string;
+      aspectRatio: '16:9' | '9:16' | '1:1';
+      backgroundColor: string;
+      backgroundAssetName: string;
+      textLayers: Array<{
+        id: string;
+        role: 'headline' | 'subtitle' | 'custom';
+        text: string;
+        x: number;
+        y: number;
+        width: number;
+        fontSize: number;
+        color: string;
+        align: 'left' | 'center' | 'right';
+        fontFamily: string;
+        bold: boolean;
+        visible: boolean;
+        order: number;
+      }>;
+      createdAt: string;
+      updatedAt: string;
+    }>;
+    brandColors: { primary: string; secondary: string; accent: string };
+  };
 }
 

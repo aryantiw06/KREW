@@ -14,3 +14,40 @@ export interface ThumbnailConcept {
   isSelected: boolean;
 }
 
+export type ThumbnailAspectRatio = '16:9' | '9:16' | '1:1';
+export type ThumbnailTextRole = 'headline' | 'subtitle' | 'custom';
+export type ThumbnailTextAlignment = 'left' | 'center' | 'right';
+
+export interface ThumbnailTextLayer {
+  id: string;
+  role: ThumbnailTextRole;
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  fontSize: number;
+  color: string;
+  align: ThumbnailTextAlignment;
+  fontFamily: string;
+  bold: boolean;
+  visible: boolean;
+  order: number;
+}
+
+export interface ThumbnailVersion {
+  id: string;
+  name: string;
+  aspectRatio: ThumbnailAspectRatio;
+  backgroundColor: string;
+  backgroundAssetName: string;
+  textLayers: ThumbnailTextLayer[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ThumbnailWorkspaceData {
+  activeVersionId: string;
+  versions: ThumbnailVersion[];
+  brandColors: { primary: string; secondary: string; accent: string };
+}
+

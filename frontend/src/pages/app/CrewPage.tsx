@@ -24,7 +24,7 @@ export const CrewPage: React.FC = () => {
     <section id="the-crew" className="scroll-mt-24 space-y-7">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><p className="krew-meta mb-2">THE PEOPLE BEHIND THE PROCESS</p><h2 className="font-display text-2xl font-semibold text-krew-text-primary sm:text-3xl">A crew built around your voice.</h2></div><p className="max-w-md text-sm text-krew-text-secondary">Every role has a defined scope and contract. Select a portrait to explore how that role fits your production.</p></div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
-        {KREW_AGENTS.map((agent, index) => <AgentCard key={agent.id} agent={agent} number={agent.number} featured={index === 0} onInspect={inspect} />)}
+        {KREW_AGENTS.map(agent => <AgentCard key={agent.id} agent={agent} number={agent.number} onInspect={inspect} />)}
       </div>
     </section>
 

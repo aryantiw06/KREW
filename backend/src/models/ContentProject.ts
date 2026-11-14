@@ -17,6 +17,20 @@ const ContentProjectSchema = new Schema<ContentProjectDocument>(
     sourceDuration: { type: Number },
     fileSizeBytes: { type: Number },
     fileMetadata: { type: Schema.Types.Mixed, default: {} },
+    productionBrief: {
+      objective: { type: String, default: '' },
+      targetAudience: { type: String, default: '' },
+      contentFormat: { type: String, default: '' },
+      tone: { type: String, default: '' }
+    },
+    creativeWorkspace: {
+      idea: { type: String, default: '' },
+      outline: { type: String, default: '' },
+      scriptDraft: { type: String, default: '' },
+      talkingPoints: { type: [String], default: [] },
+      creativeNotes: { type: String, default: '' }
+    },
+    thumbnailWorkspace: { type: Schema.Types.Mixed },
     status: {
       type: String,
       enum: ['draft', 'queued', 'in_production', 'review_ready', 'approved', 'archived'],

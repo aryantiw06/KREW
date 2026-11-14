@@ -3,11 +3,11 @@ import { AgentDefinition } from '../../types/agent.types';
 import { ArrowUpRight } from 'lucide-react';
 import { AgentPortrait } from './AgentPortrait';
 
-interface AgentCardProps { agent: AgentDefinition; number?: string; onInspect: (agent: AgentDefinition) => void; featured?: boolean; }
+interface AgentCardProps { agent: AgentDefinition; number?: string; onInspect: (agent: AgentDefinition) => void; }
 
-export const AgentCard: React.FC<AgentCardProps> = ({ agent, number = '01', onInspect, featured = false }) => (
-  <button type="button" onClick={() => onInspect(agent)} className={`group relative block w-full overflow-hidden rounded-2xl bg-krew-surface text-left transition-transform duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-krew-purple ${featured ? 'md:col-span-2' : ''}`}>
-    <AgentPortrait agent={agent} className={featured ? 'aspect-[16/8]' : 'aspect-[4/3]'} />
+export const AgentCard: React.FC<AgentCardProps> = ({ agent, number = '01', onInspect }) => (
+  <button type="button" onClick={() => onInspect(agent)} className="group relative block w-full overflow-hidden rounded-2xl bg-krew-surface text-left transition-transform duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-krew-purple">
+    <AgentPortrait agent={agent} />
     <div className="relative p-5 sm:p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <span className="font-mono text-xs text-krew-text-muted">AGENT {number}</span>

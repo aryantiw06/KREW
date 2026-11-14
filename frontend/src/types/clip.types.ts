@@ -16,3 +16,15 @@ export interface ClipSegment {
   status: 'suggested' | 'approved' | 'rejected' | 'rendering_pipeline';
 }
 
+export type ClipMomentReviewStatus = 'unreviewed' | 'keep' | 'discard';
+
+export interface UserClipMoment {
+  id: string;
+  projectId: string;
+  timestamp: number;
+  duration: number;
+  description: string;
+  creatorNotes: string;
+  reviewStatus: ClipMomentReviewStatus;
+}
+
