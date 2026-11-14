@@ -1,286 +1,48 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { Bookmark, Check, Film, Pause, Play, Scissors, Smartphone, X } from 'lucide-react';
 import { SAMPLE_CLIPS } from '../../data/sampleClips';
 import { ClipSegment } from '../../types/clip.types';
-import { Card } from '../../components/common/Card';
-import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
-import { StatusPill } from '../../components/common/StatusPill';
+import { Button } from '../../components/common/Button';
 import { useToast } from '../../hooks/useToast';
 import { formatDuration } from '../../utils/formatters';
-import {
-  Scissors,
-  Play,
-  Pause,
-  CheckCircle2,
-  XCircle,
-  Sparkles,
-  Smartphone,
-  Sliders,
-  Clock,
-  Film,
-  Zap,
-  Volume2
-} from 'lucide-react';
 
+const APPROVAL_KEY = 'krew_clip_review_state'; const BOOKMARK_KEY = 'krew_clip_bookmarks';
+const readMap = <T,>(key: string, fallback: T): T => { try { return JSON.parse(localStorage.getItem(key) || 'null') || fallback; } catch { return fallback; } };
 export const ClipIntelligencePage: React.FC = () => {
   const { showToast } = useToast();
-  const [clips, setClips] = useState<ClipSegment[]>(SAMPLE_CLIPS);
-  const [selectedClip, setSelectedClip] = useState<ClipSegment>(clips[0]);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(142); // current timeline position
-
-  const handleApprove = (id: string) => {
-    setClips((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, isApproved: true, status: 'approved' } : c))
-    );
-    showToast({
-      title: 'Clip Approved',
-      message: 'Sample segment approval updated in this page session only; no agent handoff occurred.',
-      type: 'success'
-    });
+  const [clips, setClips] = useState<ClipSegment[]>(() => {
+    const state = readMap<Record<string, Pick<ClipSegment, 'status' | 'isApproved'>>>(APPROVAL_KEY, {});
+    return SAMPLE_CLIPS.map(clip => ({ ...clip, ...(state[clip.id] || {}) }));
+  });
+  const [bookmarks, setBookmarks] = useState<string[]>(() => readMap<string[]>(BOOKMARK_KEY, []));
+  const [selectedId, setSelectedId] = useState(clips[0]?.id || ''); const [currentTime, setCurrentTime] = useState(clips[0]?.startTime || 0); const [isPlaying, setIsPlaying] = useState(false);
+  const selected = clips.find(clip => clip.id === selectedId) || clips[0];
+  const maxTime = 885;
+  const waveform = useMemo(() => Array.from({ length: 88 }, (_, i) => 16 + Math.abs(Math.sin(i * 0.51) * 58 + Math.cos(i * 0.18) * 22)), []);
+  const chooseClip = (clip: ClipSegment) => { setSelectedId(clip.id); setCurrentTime(clip.startTime); };
+  const review = (clip: ClipSegment, approved: boolean) => {
+    const reviewState: Pick<ClipSegment, 'status' | 'isApproved'> = { status: approved ? 'approved' : 'rejected', isApproved: approved };
+    const nextState = { ...readMap<Record<string, Pick<ClipSegment, 'status' | 'isApproved'>>>(APPROVAL_KEY, {}), [clip.id]: reviewState };
+    try { localStorage.setItem(APPROVAL_KEY, JSON.stringify(nextState)); } catch { /* Review state remains available for this session. */ }
+    setClips(prev => prev.map(item => item.id === clip.id ? { ...item, ...nextState[clip.id] } : item));
+    showToast({ title: approved ? 'Sample segment approved' : 'Sample segment rejected', message: 'Review preference saved locally. No agent handoff or video analysis occurred.', type: approved ? 'success' : 'info' });
   };
+  const toggleBookmark = (clip: ClipSegment) => { const next = bookmarks.includes(clip.id) ? bookmarks.filter(id => id !== clip.id) : [...bookmarks, clip.id]; setBookmarks(next); try { localStorage.setItem(BOOKMARK_KEY, JSON.stringify(next)); } catch { /* Bookmark remains for this session. */ } };
+  if (!selected) return null;
 
-  const handleReject = (id: string) => {
-    setClips((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, isApproved: false, status: 'rejected' } : c))
-    );
-    showToast({
-      title: 'Clip Rejected',
-      message: 'Sample segment state updated in this page session only.',
-      type: 'info'
-    });
-  };
+  return <div className="space-y-7">
+    <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="krew-meta mb-2 flex items-center gap-2"><Scissors className="h-4 w-4 text-krew-status-error"/> EDITOR’S WORKSPACE</p><h1 className="font-display text-3xl font-semibold text-krew-text-primary sm:text-4xl">Clip Intelligence</h1><p className="mt-2 max-w-2xl text-sm text-krew-text-secondary">Review illustrative sample segments and make local selections. Live video intelligence is <strong className="text-krew-lavender">RESERVED FOR LIVE HACKATHON SPRINT</strong>.</p></div><Badge variant="rose">Illustrative sample segments</Badge></header>
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,.8fr)]">
+      <section className="min-w-0 space-y-4">
+        <div className="relative isolate flex aspect-video min-h-[16rem] items-end overflow-hidden rounded-3xl bg-[#09090D] p-4 sm:p-6"><div className="absolute inset-0 -z-10" style={{ background: `radial-gradient(ellipse at 50% 30%, ${selected.speakerEmotion === 'Excited' ? 'rgba(168,85,247,.3)' : 'rgba(56,189,248,.18)'}, transparent 50%), linear-gradient(145deg,#201F2A,#09090D 72%)` }}/><div className="absolute inset-6 rounded-2xl border border-white/10 sm:inset-10"/><div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-black/35 px-3 py-1.5 font-mono text-[10px] text-white/75"><span className="h-1.5 w-1.5 rounded-full bg-krew-status-warning"/> SAMPLE FOOTAGE · NOT A VIDEO ANALYSIS</div><div className="relative z-10 max-w-xl"><span className="font-mono text-xs text-krew-lavender">{formatDuration(currentTime)} / 14:45 · {selected.platformFormat}</span><h2 className="mt-2 font-display text-xl font-semibold text-white sm:text-3xl">{selected.title}</h2><p className="mt-2 line-clamp-2 text-sm text-white/70">{selected.transcriptSnippet}</p></div><button type="button" aria-label={isPlaying ? 'Pause illustrative playback' : 'Play illustrative preview'} onClick={() => setIsPlaying(value => !value)} className="absolute right-5 top-1/2 z-10 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-krew-purple text-white shadow-lg sm:right-8 sm:h-14 sm:w-14">{isPlaying ? <Pause className="h-5 w-5"/> : <Play className="ml-0.5 h-5 w-5"/>}</button><div className="absolute bottom-4 right-4 rounded-lg bg-black/35 px-2.5 py-1 font-mono text-[10px] text-white/65 sm:bottom-6 sm:right-6">Illustrative frame</div></div>
+        <section className="rounded-2xl bg-krew-surface p-4 sm:p-5"><div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="text-sm font-semibold text-krew-text-primary">Timeline & sample segments</h2><p className="mt-1 text-xs text-krew-text-muted">Select a marked segment or scrub to inspect the sample track.</p></div><span className="krew-meta hidden sm:block">MASTER · 14:45</span></div><div className="relative h-16 overflow-hidden rounded-xl bg-krew-bg-secondary px-2"><div className="absolute inset-x-2 inset-y-2 flex items-center justify-between opacity-35">{waveform.map((height, index) => <span key={index} className="w-[2px] rounded-full bg-krew-lavender" style={{ height: `${height}%` }}/>)}</div>{clips.map(clip => <button type="button" key={clip.id} aria-label={`Select sample segment ${clip.title}`} onClick={() => chooseClip(clip)} className={`absolute top-2 z-10 h-12 min-w-2 rounded-lg border transition-colors ${clip.id === selected.id ? 'border-krew-status-error bg-krew-status-error/50' : 'border-krew-purple/50 bg-krew-purple/30 hover:bg-krew-purple/50'}`} style={{ left: `${clip.startTime / maxTime * 100}%`, width: `${Math.max(clip.duration / maxTime * 100, 1.6)}%` }}><span className="sr-only">{clip.title}</span></button>)}<div aria-hidden="true" className="absolute bottom-0 top-0 z-20 w-px bg-white" style={{ left: `${currentTime / maxTime * 100}%` }}/></div><input aria-label="Scrub sample timeline" type="range" min="0" max={maxTime} value={currentTime} onChange={event => setCurrentTime(Number(event.target.value))} className="mt-3 w-full accent-krew-purple"/><div className="flex justify-between font-mono text-[10px] text-krew-text-muted"><span>00:00</span><span>{formatDuration(currentTime)}</span><span>14:45</span></div></section>
+        <section><div className="mb-3 flex items-center justify-between"><h2 className="font-display text-lg font-semibold text-krew-text-primary">Sample selects</h2><span className="krew-meta">{clips.length} SEGMENTS</span></div><div className="grid gap-3 sm:grid-cols-2">{clips.map((clip, index) => <button key={clip.id} type="button" onClick={() => chooseClip(clip)} className={`rounded-2xl p-4 text-left transition-colors ${selected.id === clip.id ? 'bg-krew-purple/10 ring-1 ring-krew-purple/60' : 'bg-krew-surface hover:bg-krew-surface-elevated'}`}><div className="mb-3 flex items-center justify-between gap-2"><span className="krew-meta">SELECT 0{index + 1} · {formatDuration(clip.startTime)}</span><span className="flex items-center gap-2"><span className="text-[10px] text-krew-text-muted">{clip.status}</span><Bookmark aria-hidden="true" className={`h-4 w-4 text-krew-lavender ${bookmarks.includes(clip.id) ? 'fill-current' : ''}`}/></span></div><h3 className="font-display text-sm font-semibold text-krew-text-primary">{clip.title}</h3><p className="mt-1 line-clamp-2 text-xs leading-relaxed text-krew-text-secondary">{clip.suggestedHook}</p><div className="mt-3 flex flex-wrap gap-1.5">{clip.targetPlatforms.map(platform => <span key={platform} className="rounded-full bg-krew-bg-secondary px-2 py-1 text-[10px] text-krew-text-muted">{platform}</span>)}</div></button>)}</div></section>
+      </section>
 
-  return (
-    <div className="space-y-8">
-      {/* Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-krew-border/60 pb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono uppercase tracking-wider text-rose-400 bg-rose-500/15 px-2.5 py-0.5 rounded-full border border-rose-500/30 flex items-center gap-1.5">
-              <Scissors className="w-3.5 h-3.5 text-rose-400" />
-              <span>THE EDITOR'S WORKSPACE • VIDEO INTELLIGENCE</span>
-            </span>
-            <StatusPill type="sample" label="Illustrative Moment Detection" />
-          </div>
-          <h1 className="font-display font-bold text-3xl text-white tracking-tight">
-            Clip Intelligence Desk
-          </h1>
-          <p className="text-xs sm:text-sm text-krew-text-secondary mt-1 max-w-2xl">
-            Explore illustrative sample segments. Real video analysis and timestamp detection are RESERVED FOR LIVE HACKATHON SPRINT.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Badge variant="rose" size="sm">
-            Sample segments
-          </Badge>
-          <StatusPill type="live_reserved" label="Live Sprint AI Detection" />
-        </div>
-      </div>
-
-      {/* Main Studio Video & Timeline Workspace */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left 2 Cols: Master Player & Timeline */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Simulated Cinematic Video Monitor */}
-          <div className="relative rounded-2xl bg-black border border-krew-border overflow-hidden aspect-video flex flex-col justify-between p-4 shadow-2xl">
-            {/* Top Bar inside monitor */}
-            <div className="flex items-center justify-between text-xs font-mono text-white/80 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 z-10">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                <span>REC • MASTER FOOTAGE (4K PRORES)</span>
-              </div>
-              <span className="text-krew-lavender">
-                TIMECODE: {formatDuration(currentTime)} / 14:45
-              </span>
-            </div>
-
-            {/* Central Video Frame Simulation */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center space-y-3 p-6 max-w-md">
-                <div className="w-16 h-16 rounded-full bg-krew-purple/20 border border-krew-purple/50 flex items-center justify-center mx-auto text-white shadow-purple-glow cursor-pointer hover:scale-105 transition-transform"
-                     onClick={() => setIsPlaying(!isPlaying)}>
-                  {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-1" />}
-                </div>
-                <h4 className="font-display text-lg font-bold text-white">
-                  "{selectedClip.title}"
-                </h4>
-                <p className="text-xs text-krew-text-secondary line-clamp-2">
-                  Hook: "{selectedClip.suggestedHook}"
-                </p>
-              </div>
-            </div>
-
-            {/* Bottom Safe Title Guides / 9:16 Vertical Crop Overlay */}
-            <div className="flex items-center justify-between text-[11px] font-mono text-krew-text-muted z-10">
-              <span className="bg-black/60 px-2.5 py-1 rounded border border-white/10">
-                Aspect Guide: {selectedClip.platformFormat}
-              </span>
-              <span className="bg-black/60 px-2.5 py-1 rounded border border-white/10 text-emerald-400">
-                Emotion: {selectedClip.speakerEmotion}
-              </span>
-            </div>
-          </div>
-
-          {/* Interactive Multi-Track Timeline */}
-          <Card padding="md" className="space-y-4 bg-krew-surface/60 border-krew-border">
-            <div className="flex items-center justify-between text-xs font-mono">
-              <div className="flex items-center gap-2 text-white">
-                <Sliders className="w-4 h-4 text-krew-purple" />
-                <span>NARRATIVE TIMELINE CONTEXT</span>
-              </div>
-              <span className="text-krew-text-muted">Master Length: 14m 45s</span>
-            </div>
-
-            {/* Timeline Waveform & Clip Markers */}
-            <div className="relative h-20 rounded-xl bg-krew-card border border-krew-border p-2 flex items-center overflow-hidden">
-              {/* Audio Waveform Bars Simulation */}
-              <div className="absolute inset-x-2 inset-y-3 flex items-center justify-between opacity-30 pointer-events-none">
-                {Array.from({ length: 60 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-1 bg-krew-lavender rounded-full"
-                    style={{ height: `${20 + (Math.sin(i * 0.4) * 50 + 20)}%` }}
-                  />
-                ))}
-              </div>
-
-              {/* Clip Highlight Blocks */}
-              {clips.map((clip) => {
-                const leftPercent = (clip.startTime / 885) * 100;
-                const widthPercent = (clip.duration / 885) * 100;
-                const isSelected = clip.id === selectedClip.id;
-
-                return (
-                  <div
-                    key={clip.id}
-                    onClick={() => {
-                      setSelectedClip(clip);
-                      setCurrentTime(clip.startTime);
-                    }}
-                    style={{ left: `${leftPercent}%`, width: `${widthPercent}%` }}
-                    className={`absolute h-12 rounded-lg border cursor-pointer transition-all flex items-center justify-center p-1 text-[10px] font-mono font-bold truncate z-10 ${
-                      isSelected
-                        ? 'bg-rose-500/40 border-rose-400 text-white shadow-lg shadow-rose-500/30'
-                        : 'bg-krew-purple/20 border-krew-purple/40 text-krew-lavender hover:bg-krew-purple/30'
-                    }`}
-                  >
-                    <span>{clip.duration}s</span>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="flex items-center justify-between text-[11px] text-krew-text-muted font-mono">
-              <span>00:00</span>
-              <span>03:40</span>
-              <span>07:20</span>
-              <span>11:00</span>
-              <span>14:45</span>
-            </div>
-          </Card>
-        </div>
-
-        {/* Right Col: Selected Clip Inspector & Actions */}
-        <div className="space-y-4">
-          <Card padding="md" className="space-y-4 border-krew-border bg-krew-card">
-            <div className="flex items-center justify-between border-b border-krew-border/60 pb-3">
-              <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-rose-400">
-                  Clip Intelligence Card
-                </span>
-                <h4 className="font-display text-lg font-bold text-white">
-                  {selectedClip.title}
-                </h4>
-              </div>
-              <Badge variant={selectedClip.isApproved ? 'emerald' : 'amber'} size="xs">
-                {selectedClip.status.toUpperCase()}
-              </Badge>
-            </div>
-
-            {/* Viral Potential Meter */}
-            <div className="p-3 rounded-xl bg-krew-surface border border-krew-border space-y-1.5">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-krew-text-secondary flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Illustrative sample score (not measured)</span>
-                </span>
-                <span className="font-bold text-amber-400">
-                  {selectedClip.viralPotentialScore}/100
-                </span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-krew-card overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-amber-400 to-rose-500 rounded-full"
-                  style={{ width: `${selectedClip.viralPotentialScore}%` }}
-                />
-              </div>
-              <p className="text-[10px] text-krew-text-muted font-mono">
-                Placeholder sample value only; no retention analysis is performed.
-              </p>
-            </div>
-
-            {/* Hook */}
-            <div className="space-y-1">
-              <span className="text-[11px] font-mono text-krew-lavender uppercase tracking-wider">
-                The Writer Hook Angle:
-              </span>
-              <p className="text-xs text-white bg-krew-surface p-2.5 rounded-lg border border-krew-border font-medium">
-                "{selectedClip.suggestedHook}"
-              </p>
-            </div>
-
-            {/* Transcript Snippet */}
-            <div className="space-y-1">
-              <span className="text-[11px] font-mono text-krew-text-muted uppercase tracking-wider">
-                Transcript Excerpt:
-              </span>
-              <p className="text-xs text-krew-text-secondary bg-krew-surface p-2.5 rounded-lg border border-krew-border leading-relaxed">
-                "{selectedClip.transcriptSnippet}"
-              </p>
-            </div>
-
-            {/* Target Platforms */}
-            <div>
-              <span className="text-[11px] font-mono text-krew-text-muted uppercase tracking-wider block mb-1.5">
-                Target Platform Renders:
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {selectedClip.targetPlatforms.map((p, idx) => (
-                  <Badge key={idx} variant="outline" size="xs">
-                    <Smartphone className="w-3 h-3 text-krew-lavender" />
-                    <span>{p}</span>
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            {/* Decision Buttons */}
-            <div className="pt-3 border-t border-krew-border/60 flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 text-rose-400 border-rose-500/30 hover:bg-rose-500/10"
-                onClick={() => handleReject(selectedClip.id)}
-                leftIcon={<XCircle className="w-4 h-4" />}
-              >
-                Reject
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                className="flex-1 shadow-purple-glow"
-                onClick={() => handleApprove(selectedClip.id)}
-                leftIcon={<CheckCircle2 className="w-4 h-4" />}
-              >
-                Approve Clip
-              </Button>
-            </div>
-          </Card>
-        </div>
-      </div>
+      <aside className="h-fit rounded-2xl bg-krew-surface p-5 xl:sticky xl:top-28"><div className="flex items-start justify-between gap-3"><div><p className="krew-meta mb-1">SEGMENT NOTES</p><h2 className="font-display text-xl font-semibold text-krew-text-primary">{selected.title}</h2></div><Badge variant={selected.status === 'approved' ? 'emerald' : selected.status === 'rejected' ? 'rose' : 'neutral'}>{selected.status}</Badge></div><dl className="mt-5 grid grid-cols-2 gap-3 text-xs"><Metadata label="Start" value={formatDuration(selected.startTime)}/><Metadata label="Duration" value={`${selected.duration}s`}/><Metadata label="Format" value={selected.platformFormat}/><Metadata label="Emotion" value={selected.speakerEmotion}/></dl><div className="mt-5"><p className="krew-meta mb-2">SAMPLE TRANSCRIPT EXCERPT</p><p className="rounded-xl bg-krew-bg-secondary p-3 text-sm leading-relaxed text-krew-text-secondary">“{selected.transcriptSnippet}”</p></div><div className="mt-4"><p className="krew-meta mb-2">SUGGESTED HOOK · SAMPLE</p><p className="text-sm text-krew-text-primary">“{selected.suggestedHook}”</p></div><div className="mt-5 flex flex-wrap gap-2"><Button variant="secondary" onClick={() => toggleBookmark(selected)} leftIcon={<Bookmark className={`h-4 w-4 ${bookmarks.includes(selected.id) ? 'fill-current' : ''}`}/>}>{bookmarks.includes(selected.id) ? 'Bookmarked' : 'Bookmark'}</Button><Button variant="secondary" className="flex-1" onClick={() => review(selected, false)} leftIcon={<X className="h-4 w-4"/>}>Reject</Button><Button className="flex-1" onClick={() => review(selected, true)} leftIcon={<Check className="h-4 w-4"/>}>Approve</Button></div><p className="mt-3 text-[11px] leading-relaxed text-krew-text-muted"><Smartphone className="mr-1 inline h-3.5 w-3.5"/>Review and bookmark choices are stored locally. No source video is loaded or analyzed.</p><div className="mt-4 rounded-xl bg-krew-status-warning/10 p-3 text-xs text-krew-status-warning">Live video intelligence: RESERVED FOR LIVE HACKATHON SPRINT</div></aside>
     </div>
-  );
+  </div>;
 };
 
+const Metadata: React.FC<{ label: string; value: string }> = ({ label, value }) => <div className="rounded-xl bg-krew-bg-secondary p-3"><dt className="text-[10px] text-krew-text-muted">{label}</dt><dd className="mt-1 text-krew-text-primary">{value}</dd></div>;

@@ -160,12 +160,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <div className="p-3 border-t border-krew-border/60 bg-krew-bg/60">
           <div className="p-2.5 rounded-xl bg-krew-surface border border-krew-border flex items-center justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="relative w-8 h-8 rounded-full overflow-hidden border border-krew-purple shrink-0">
-                <img
-                  src={user?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}
-                  alt="Creator Avatar"
-                  className="w-full h-full object-cover"
-                />
+              <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-krew-purple/20 font-display text-xs font-semibold text-krew-lavender ring-1 ring-krew-purple/50">
+                {user?.avatarUrl ? <img src={user.avatarUrl} alt="Creator avatar" className="h-full w-full object-cover" /> : (user?.name || 'C').trim().charAt(0).toUpperCase()}
                 <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 border border-krew-bg"></span>
               </div>
               <div className="min-w-0 flex-1">

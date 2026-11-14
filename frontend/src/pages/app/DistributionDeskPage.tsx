@@ -1,266 +1,47 @@
 import React, { useState } from 'react';
+import { Check, CheckSquare, Clock3, Facebook, Instagram, Linkedin, Save, Send, Square, Youtube } from 'lucide-react';
 import { SAMPLE_DISTRIBUTION_CAMPAIGN } from '../../data/sampleDistribution';
-import { SocialPlatform, PlatformPostDraft } from '../../types/distribution.types';
-import { Card } from '../../components/common/Card';
-import { Button } from '../../components/common/Button';
+import { DistributionCampaign, PlatformPostDraft, SocialPlatform } from '../../types/distribution.types';
 import { Input, Textarea } from '../../components/common/Input';
+import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
-import { StatusPill } from '../../components/common/StatusPill';
 import { useToast } from '../../hooks/useToast';
-import {
-  Share2,
-  Youtube,
-  Instagram,
-  Linkedin,
-  Facebook,
-  Calendar,
-  CheckSquare,
-  Square,
-  Clock,
-  Sparkles,
-  Send,
-  Save,
-  Tag,
-  Hash
-} from 'lucide-react';
+
+const DRAFT_KEY = 'krew_distribution_drafts'; const CHECK_KEY = 'krew_distribution_checklist';
+const parseStored = <T,>(key: string, fallback: T): T => { try { return JSON.parse(localStorage.getItem(key) || 'null') || fallback; } catch { return fallback; } };
+const hasSavedDrafts = () => { try { return Boolean(localStorage.getItem(DRAFT_KEY)); } catch { return false; } };
+const platforms: SocialPlatform[] = ['YouTube', 'Instagram', 'LinkedIn', 'Facebook'];
+const icons: Record<SocialPlatform, React.ReactNode> = { YouTube: <Youtube className="h-4 w-4"/>, Instagram: <Instagram className="h-4 w-4"/>, LinkedIn: <Linkedin className="h-4 w-4"/>, Facebook: <Facebook className="h-4 w-4"/> };
 
 export const DistributionDeskPage: React.FC = () => {
   const { showToast } = useToast();
-  const [campaign, setCampaign] = useState(SAMPLE_DISTRIBUTION_CAMPAIGN);
+  const [campaign, setCampaign] = useState<DistributionCampaign>(() => {
+    const stored = parseStored<Partial<Record<SocialPlatform, PlatformPostDraft>>>(DRAFT_KEY, {});
+    const checklist = parseStored<DistributionCampaign['checklist']>(CHECK_KEY, SAMPLE_DISTRIBUTION_CAMPAIGN.checklist);
+    return { ...SAMPLE_DISTRIBUTION_CAMPAIGN, posts: { ...SAMPLE_DISTRIBUTION_CAMPAIGN.posts, ...stored }, checklist };
+  });
   const [activePlatform, setActivePlatform] = useState<SocialPlatform>('YouTube');
-  const [activeDraft, setActiveDraft] = useState<PlatformPostDraft>(campaign.posts['YouTube']);
-  const [draftSaved, setDraftSaved] = useState(false);
+  const [saved, setSaved] = useState(hasSavedDrafts);
+  const activeDraft = campaign.posts[activePlatform];
 
-  const handlePlatformChange = (platform: SocialPlatform) => {
-    setActivePlatform(platform);
-    setActiveDraft(campaign.posts[platform]);
+  const updateDraft = (patch: Partial<PlatformPostDraft>) => {
+    const nextDraft = { ...activeDraft, ...patch };
+    const nextCampaign = { ...campaign, posts: { ...campaign.posts, [activePlatform]: nextDraft } };
+    setCampaign(nextCampaign); setSaved(false);
+    try { const stored = parseStored<Partial<Record<SocialPlatform, PlatformPostDraft>>>(DRAFT_KEY, {}); localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...stored, [activePlatform]: nextDraft })); } catch { /* Draft remains in memory for this session. */ }
   };
+  const saveDraft = () => { try { const stored = parseStored<Partial<Record<SocialPlatform, PlatformPostDraft>>>(DRAFT_KEY, {}); localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...stored, [activePlatform]: activeDraft })); setSaved(true); showToast({ title: 'Draft saved locally', message: `${activePlatform} copy stays in this browser. Nothing is published.`, type: 'success' }); } catch { showToast({ title: 'Draft remains in this session', message: 'Browser storage is unavailable; the draft has not been synced.', type: 'warning' }); } };
+  const toggleChecklist = (id: string) => setCampaign(previous => { const checklist = previous.checklist.map(item => item.id === id ? { ...item, completed: !item.completed } : item); try { localStorage.setItem(CHECK_KEY, JSON.stringify(checklist)); } catch { /* Keep checklist updated for this session. */ } return { ...previous, checklist }; });
+  const remaining = activeDraft.charCountLimit - activeDraft.caption.length;
 
-  const handleSaveDraft = () => {
-    setCampaign((prev) => ({
-      ...prev,
-      posts: {
-        ...prev.posts,
-        [activePlatform]: activeDraft
-      }
-    }));
-    const drafts = JSON.parse(localStorage.getItem('krew_distribution_drafts') || '{}');
-    localStorage.setItem('krew_distribution_drafts', JSON.stringify({ ...drafts, [activePlatform]: activeDraft }));
-    setDraftSaved(true);
-    showToast({
-      title: 'Draft Saved Locally',
-      message: `${activePlatform} draft saved in this browser only.`,
-      type: 'success'
-    });
-  };
-
-  const toggleChecklist = (id: string) => {
-    setCampaign((prev) => ({
-      ...prev,
-      checklist: prev.checklist.map((item) =>
-        item.id === id ? { ...item, completed: !item.completed } : item
-      )
-    }));
-  };
-
-  const platformIcons: Record<SocialPlatform, React.ReactNode> = {
-    YouTube: <Youtube className="w-5 h-5 text-red-500" />,
-    Instagram: <Instagram className="w-5 h-5 text-pink-500" />,
-    LinkedIn: <Linkedin className="w-5 h-5 text-blue-400" />,
-    Facebook: <Facebook className="w-5 h-5 text-blue-600" />
-  };
-
-  return (
-    <div className="space-y-8">
-      {/* Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-krew-border/60 pb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono uppercase tracking-wider text-emerald-400 bg-emerald-500/15 px-2.5 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1.5">
-              <Share2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>THE PUBLICIST • MULTI-PLATFORM DISTRIBUTION</span>
-            </span>
-            <StatusPill type="sample" label="Illustrative Draft Workspace" />
-          </div>
-          <h1 className="font-display font-bold text-3xl text-white tracking-tight">
-            Distribution Desk
-          </h1>
-          <p className="text-xs sm:text-sm text-krew-text-secondary mt-1 max-w-2xl">
-            The Publicist tailors your master campaign into platform-native copy, algorithmic SEO hashtags, and staggered release cadences for YouTube, Instagram, LinkedIn, and Facebook.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-            <StatusPill type="live_reserved" label="Publishing Reserved for Live Hackathon Sprint" />
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleSaveDraft}
-            leftIcon={<Save className="w-4 h-4" />}
-          >
-            Save Draft
-          </Button>
-        </div>
-      </div>
-
-      {/* Platform Switcher Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        {(['YouTube', 'Instagram', 'LinkedIn', 'Facebook'] as SocialPlatform[]).map((p) => {
-          const isCurrent = activePlatform === p;
-          return (
-            <button
-              key={p}
-              onClick={() => handlePlatformChange(p)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                isCurrent
-                  ? 'bg-krew-card border border-krew-purple text-white shadow-purple-glow'
-                  : 'bg-krew-surface border border-krew-border text-krew-text-secondary hover:text-white'
-              }`}
-            >
-              {platformIcons[p]}
-              <span>{p}</span>
-              <span className="text-[10px] font-mono text-krew-lavender bg-krew-charcoal px-2 py-0.5 rounded border border-krew-border/60">
-                {campaign.posts[p].status.toUpperCase()}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Main 2-Column Editor & Preview Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left 2 Cols: Platform Copy Editor */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card padding="lg" className="space-y-5 bg-krew-card">
-            <div className="flex items-center justify-between border-b border-krew-border/60 pb-3">
-              <div className="flex items-center gap-2">
-                {platformIcons[activePlatform]}
-                <h3 className="font-display text-lg font-bold text-white">
-                  {activePlatform} Distribution Metadata
-                </h3>
-              </div>
-              <span className="text-xs font-mono text-krew-lavender">
-                Format: {activeDraft.contentFormat}
-              </span>
-            </div>
-
-            <Input
-              label="Optimized Title / Headline"
-              value={activeDraft.title}
-              onChange={(e) => setActiveDraft({ ...activeDraft, title: e.target.value })}
-            />
-
-            <Textarea
-              label="Platform-Native Caption & Description"
-              value={activeDraft.caption}
-              onChange={(e) => setActiveDraft({ ...activeDraft, caption: e.target.value })}
-              rows={8}
-            />
-
-            {/* Hashtag Management */}
-            <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-krew-text-secondary mb-2 flex items-center gap-1.5">
-                <Hash className="w-3.5 h-3.5 text-krew-purple" />
-                <span>Strategic Hashtags ({activeDraft.hashtags.length})</span>
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {activeDraft.hashtags.map((tag, idx) => (
-                  <Badge key={idx} variant="purple" size="sm">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            {/* SEO Keyword Cluster */}
-            <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-krew-text-secondary mb-2 flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-krew-cyan" />
-                <span>Search Intent Keywords (Publicist Strategy)</span>
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {activeDraft.seoKeywords.map((kw, idx) => (
-                  <span
-                    key={idx}
-                    className="text-xs font-mono bg-krew-surface px-2.5 py-1 rounded-lg border border-krew-border text-krew-text-secondary"
-                  >
-                    {kw}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Schedule Slot Guidance */}
-            <div className="p-3.5 rounded-xl bg-krew-surface border border-krew-border flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2 text-white">
-                <Clock className="w-4 h-4 text-emerald-400" />
-                <span className="font-semibold">Recommended Cadence Window:</span>
-              </div>
-              <span className="font-mono text-emerald-400 font-bold">
-                {activeDraft.recommendedScheduleTime}
-              </span>
-            </div>
-          </Card>
-        </div>
-
-        {/* Right Col: Distribution Readiness Checklist */}
-        <div className="space-y-6">
-          <Card padding="md" className="space-y-4 bg-krew-card">
-            <div className="border-b border-krew-border/60 pb-3">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400">
-                Pre-Flight Governance
-              </span>
-              <h4 className="font-display text-base font-bold text-white mt-0.5">
-                Distribution Checklist
-              </h4>
-              <p className="text-xs text-krew-text-secondary mt-0.5">
-                Every role signs off before the Star greenlights distribution.
-              </p>
-            </div>
-
-            <div className="space-y-2.5">
-              {campaign.checklist.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => toggleChecklist(item.id)}
-                  className="p-3 rounded-xl bg-krew-surface hover:bg-krew-cardHover border border-krew-border cursor-pointer transition-colors flex items-start gap-3"
-                >
-                  <button className="mt-0.5 text-krew-purple">
-                    {item.completed ? (
-                      <CheckSquare className="w-4 h-4 text-emerald-400" />
-                    ) : (
-                      <Square className="w-4 h-4 text-krew-text-muted" />
-                    )}
-                  </button>
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className={`text-xs ${
-                        item.completed ? 'text-krew-text-secondary line-through' : 'text-white'
-                      }`}
-                    >
-                      {item.task}
-                    </p>
-                    <span className="text-[10px] font-mono text-krew-lavender block mt-1">
-                      Assigned: {item.assignedRole}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <Button
-              variant="cyan"
-              size="sm"
-              className="w-full"
-              leftIcon={<Send className="w-4 h-4" />}
-              disabled
-            >
-              Publishing RESERVED FOR LIVE HACKATHON SPRINT
-            </Button>
-          </Card>
-        </div>
-      </div>
+  return <div className="space-y-8">
+    <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="krew-meta mb-2">PUBLICIST · CAMPAIGN PLANNING</p><h1 className="font-display text-3xl font-semibold text-krew-text-primary sm:text-4xl">Distribution Desk</h1><p className="mt-2 max-w-2xl text-sm text-krew-text-secondary">Shape platform-ready copy and review a suggested release cadence. Direct publishing is <strong className="text-krew-lavender">RESERVED FOR LIVE HACKATHON SPRINT</strong>.</p></div><div className="flex flex-wrap items-center gap-2"><Badge variant="neutral">Sample campaign copy</Badge><Badge variant="neutral">Local drafts</Badge><Button onClick={saveDraft} leftIcon={<Save className="h-4 w-4"/>}>{saved ? 'Saved locally' : 'Save draft'}</Button></div></header>
+    <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Social platform drafts">{platforms.map(platform => <button type="button" role="tab" aria-selected={activePlatform === platform} key={platform} onClick={() => setActivePlatform(platform)} className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-3 text-sm transition-colors ${activePlatform === platform ? 'bg-krew-purple/15 text-krew-text-primary ring-1 ring-krew-purple/50' : 'bg-krew-surface text-krew-text-secondary hover:bg-krew-surface-elevated'}`}>{icons[platform]}{platform}<span className="rounded-full bg-krew-bg-secondary px-2 py-0.5 text-[10px] text-krew-text-muted">{campaign.posts[platform].status}</span></button>)}</div>
+    <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(300px,.8fr)]">
+      <section className="space-y-5 rounded-2xl bg-krew-surface p-5 sm:p-7"><div className="flex items-start justify-between gap-3"><div><p className="krew-meta">COPY EDITOR · {activeDraft.contentFormat}</p><h2 className="mt-1 font-display text-xl font-semibold text-krew-text-primary">{activePlatform} package</h2></div><span className="text-xs text-krew-text-muted">{saved ? 'Saved in this browser' : 'Autosaved locally · unsaved confirmation'}</span></div><Input label="Title / headline" value={activeDraft.title} onChange={event => updateDraft({ title: event.target.value })}/><div><Textarea label="Caption / description" rows={9} value={activeDraft.caption} onChange={event => updateDraft({ caption: event.target.value })}/><p className={`mt-1 text-right font-mono text-[10px] ${remaining < 0 ? 'text-krew-status-error' : 'text-krew-text-muted'}`}>{activeDraft.caption.length} / {activeDraft.charCountLimit} characters · {remaining} remaining</p></div><div><p className="mb-2 text-xs font-medium text-krew-text-secondary">Hashtags · sample metadata</p><div className="flex flex-wrap gap-1.5">{activeDraft.hashtags.map(tag => <span key={tag} className="rounded-full bg-krew-bg-secondary px-2.5 py-1 text-xs text-krew-lavender">{tag}</span>)}</div></div><div><p className="mb-2 text-xs font-medium text-krew-text-secondary">Search keywords · sample metadata</p><div className="flex flex-wrap gap-1.5">{activeDraft.seoKeywords.map(word => <span key={word} className="rounded-md bg-krew-bg-secondary px-2 py-1 text-[10px] text-krew-text-muted">{word}</span>)}</div></div><div className="flex items-center justify-between gap-3 rounded-xl bg-krew-bg-secondary p-3"><span className="flex items-center gap-2 text-xs text-krew-text-secondary"><Clock3 className="h-4 w-4 text-krew-lavender"/>Suggested cadence</span><span className="text-right font-mono text-xs text-krew-text-primary">{activeDraft.recommendedScheduleTime}</span></div></section>
+      <aside className="space-y-5 xl:sticky xl:top-28"><section className="overflow-hidden rounded-2xl bg-krew-surface"><div className="flex items-center gap-2 border-b border-white/[0.07] p-4">{icons[activePlatform]}<h2 className="font-display font-semibold text-krew-text-primary">Platform preview</h2></div><div className="p-5"><div className="mb-4 flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-krew-purple/25 text-xs font-semibold text-white">K</span><div><p className="text-xs font-semibold text-krew-text-primary">{activePlatform} · preview</p><p className="text-[10px] text-krew-text-muted">Not connected · no post will be sent</p></div></div><h3 className="text-sm font-semibold text-krew-text-primary">{activeDraft.title || 'Your title preview'}</h3><p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-krew-text-secondary">{activeDraft.caption || 'Your caption preview'}</p><p className="mt-3 text-xs text-krew-cyan">{activeDraft.hashtags.join(' ')}</p></div><div className="border-t border-white/[0.07] p-4"><Button disabled className="w-full" leftIcon={<Send className="h-4 w-4"/>}>Publish · RESERVED FOR LIVE HACKATHON SPRINT</Button></div></section>
+        <section className="rounded-2xl bg-krew-surface p-5"><div className="mb-4"><p className="krew-meta">SUGGESTED CADENCE</p><h2 className="mt-1 font-display text-lg font-semibold text-krew-text-primary">Publishing plan</h2><p className="mt-1 text-xs text-krew-text-muted">Draft schedule only. No social accounts are connected.</p></div><div className="space-y-2">{platforms.map(platform => <div key={platform} className={`flex items-center gap-3 rounded-xl p-3 ${platform === activePlatform ? 'bg-krew-purple/10' : 'bg-krew-bg-secondary'}`}><span className="text-krew-lavender">{icons[platform]}</span><div className="min-w-0 flex-1"><p className="text-xs font-medium text-krew-text-primary">{platform}</p><p className="mt-0.5 truncate font-mono text-[10px] text-krew-text-muted">{campaign.posts[platform].recommendedScheduleTime}</p></div><Badge variant="neutral" size="xs">{campaign.posts[platform].status}</Badge></div>)}</div></section>
+        <section className="rounded-2xl bg-krew-surface p-5"><p className="krew-meta mb-3">HUMAN REVIEW CHECKLIST · SAMPLE</p><div className="space-y-2">{campaign.checklist.map(item => <button type="button" key={item.id} onClick={() => toggleChecklist(item.id)} aria-pressed={item.completed} className="flex w-full items-start gap-2.5 rounded-xl bg-krew-bg-secondary p-3 text-left"><span className="mt-0.5 text-krew-lavender">{item.completed ? <CheckSquare className="h-4 w-4"/> : <Square className="h-4 w-4"/>}</span><span className="min-w-0"><span className={`block text-xs ${item.completed ? 'text-krew-text-muted line-through' : 'text-krew-text-primary'}`}>{item.task}</span><span className="mt-1 block text-[10px] text-krew-text-muted">{item.assignedRole}</span></span></button>)}</div><div className="mt-4 flex items-center gap-2 rounded-xl bg-krew-status-warning/10 p-3 text-xs text-krew-status-warning"><Check className="h-4 w-4 shrink-0"/>Creator approval required. Publishing is disabled until live sprint.</div></section></aside>
     </div>
-  );
+  </div>;
 };
-

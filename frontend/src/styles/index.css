@@ -42,10 +42,12 @@
   to { opacity: 1; transform: translateY(0); }
 }
 .studio-page-enter { animation: studio-page-enter 220ms ease-out both; }
+.public-studio-backdrop { background-color: var(--krew-bg); background-image: radial-gradient(ellipse at 12% 0%, rgba(168, 85, 247, 0.055), transparent 36rem), radial-gradient(ellipse at 88% 18%, rgba(56, 189, 248, 0.035), transparent 34rem); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+[data-motion="reduced"] *, [data-motion="reduced"] *::before, [data-motion="reduced"] *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 
 /* Custom Studio Scrollbar */
 ::-webkit-scrollbar {

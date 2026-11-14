@@ -1,129 +1,41 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Bell, Check, CircleUserRound, Contrast, Cpu, LogOut, Moon, Save, ShieldCheck, SlidersHorizontal } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../hooks/useToast';
-import { Card } from '../../components/common/Card';
-import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
+import { Dropdown } from '../../components/ui/Dropdown';
 import { Badge } from '../../components/common/Badge';
-import { StatusPill } from '../../components/common/StatusPill';
-import {
-  Settings as SettingsIcon,
-  Key,
-  Shield,
-  Bell,
-  Cpu,
-  Sparkles,
-  Save,
-  CheckCircle2,
-  Lock
-} from 'lucide-react';
+
+interface Preferences { defaultWorkspace: string; reducedMotion: boolean; studioNotices: boolean; distributionReminders: boolean; }
+const PREF_KEY = 'krew_studio_preferences';
+const defaults: Preferences = { defaultWorkspace: '/dashboard', reducedMotion: false, studioNotices: true, distributionReminders: true };
+const readPrefs = (): Preferences => { try { return { ...defaults, ...(JSON.parse(localStorage.getItem(PREF_KEY) || '{}') as Partial<Preferences>) }; } catch { return defaults; } };
 
 export const SettingsPage: React.FC = () => {
-  const { user } = useAuth();
-  const { showToast } = useToast();
+  const { user, logout, demoMode } = useAuth(); const { showToast } = useToast(); const [preferences, setPreferences] = useState<Preferences>(readPrefs); const [saved, setSaved] = useState(true);
+  useEffect(() => { document.documentElement.dataset.motion = preferences.reducedMotion ? 'reduced' : 'system'; return () => { delete document.documentElement.dataset.motion; }; }, [preferences.reducedMotion]);
+  const change = <K extends keyof Preferences>(key: K, value: Preferences[K]) => { setPreferences(previous => ({ ...previous, [key]: value })); setSaved(false); };
+  const save = () => { try { localStorage.setItem(PREF_KEY, JSON.stringify(preferences)); setSaved(true); showToast({ title: 'Preferences saved', message: 'Studio preferences are stored in this browser.', type: 'success' }); } catch { showToast({ title: 'Preferences not saved', message: 'Browser storage is unavailable. These changes last for this session only.', type: 'warning' }); } };
+  const providers = ['Gemini', 'OpenAI', 'Anthropic'];
 
-  const [storageProvider, setStorageProvider] = useState('local');
+  return <div className="mx-auto max-w-5xl space-y-8">
+    <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="krew-meta mb-2">KREW STUDIO</p><h1 className="font-display text-3xl font-semibold text-krew-text-primary sm:text-4xl">Settings</h1><p className="mt-2 text-sm text-krew-text-secondary">A few choices to make the studio feel like yours.</p></div><Button onClick={save} disabled={saved} leftIcon={saved ? <Check className="h-4 w-4"/> : <Save className="h-4 w-4"/>}>{saved ? 'Preferences saved' : 'Save preferences'}</Button></header>
 
+    <section className="rounded-2xl bg-krew-surface p-5 sm:p-6"><GroupTitle icon={<CircleUserRound/>} title="Profile" hint="Your creator identity from the active account."/><div className="grid gap-4 sm:grid-cols-3"><ReadOnly label="Name" value={user?.name || 'Creator'}/><ReadOnly label="Handle" value={user?.handle || '—'}/><ReadOnly label="Email" value={user?.email || '—'}/></div></section>
 
-  return (
-    <div className="space-y-8">
-      {/* Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-krew-border/60 pb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono uppercase tracking-wider text-krew-lavender bg-krew-purple/15 px-2.5 py-0.5 rounded-full border border-krew-purple/30 flex items-center gap-1.5">
-              <SettingsIcon className="w-3.5 h-3.5 text-krew-purple" />
-              <span>STUDIO CONFIGURATION</span>
-            </span>
-            <StatusPill type="architected" label="Settings Scaffolding" />
-          </div>
-          <h1 className="font-display font-bold text-3xl text-white tracking-tight">
-            Settings & Integrations
-          </h1>
-          <p className="text-xs sm:text-sm text-krew-text-secondary mt-1 max-w-2xl">
-            Configure your creator workspace, team preferences, and API integrations reserved for autonomous LLM agent execution during the live hackathon sprint.
-          </p>
-        </div>
-      </div>
+    <section className="rounded-2xl bg-krew-surface p-5 sm:p-6"><GroupTitle icon={<SlidersHorizontal/>} title="Preferences" hint="Choose your default landing workspace."/><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><p className="text-sm font-medium text-krew-text-primary">Default workspace</p><p className="mt-1 text-xs text-krew-text-muted">Saved locally for this browser.</p></div><Dropdown aria-label="Default workspace" value={preferences.defaultWorkspace} onChange={event => change('defaultWorkspace', event.target.value)}><option value="/dashboard">Command Center</option><option value="/production">Production Studio</option><option value="/creator-dna">Creator DNA</option><option value="/crew">Meet the KREW</option></Dropdown></div></section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Card 1: Live Sprint Model & AI Orchestration Keys */}
-        <Card padding="lg" className="space-y-5 border-krew-purple/40 bg-krew-card">
-          <div className="flex items-center justify-between border-b border-krew-border/60 pb-3">
-            <div className="flex items-center gap-2">
-              <Key className="w-5 h-5 text-krew-purple" />
-              <h3 className="font-display text-lg font-bold text-white">
-                AI Provider Connections
-              </h3>
-            </div>
-            <StatusPill type="live_reserved" label="Reserved for Live Hackathon Sprint" />
-          </div>
+    <section className="rounded-2xl bg-krew-surface p-5 sm:p-6"><GroupTitle icon={<Moon/>} title="Appearance" hint="The KREW cinematic dark theme is active."/><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-krew-bg-secondary text-krew-lavender"><Contrast className="h-4 w-4"/></span><div><p className="text-sm font-medium text-krew-text-primary">Motion</p><p className="mt-1 text-xs text-krew-text-muted">Use reduced motion throughout the studio.</p></div></div><Toggle checked={preferences.reducedMotion} onChange={value => change('reducedMotion', value)} label="Reduce motion"/></div></section>
 
-          <p className="text-xs text-krew-text-secondary leading-relaxed">
-            Provider integrations are not connected. Never enter API credentials here; AI provider connections are RESERVED FOR LIVE HACKATHON SPRINT.
-          </p>
+    <section className="rounded-2xl bg-krew-surface p-5 sm:p-6"><GroupTitle icon={<Bell/>} title="Notifications" hint="Local interface preferences only; no external notifications are sent."/><div className="space-y-4"><ToggleRow label="Studio notices" description="Show interface notices inside the workspace." checked={preferences.studioNotices} onChange={value => change('studioNotices', value)}/><ToggleRow label="Distribution reminders" description="Keep draft cadence reminders visible in the Distribution Desk." checked={preferences.distributionReminders} onChange={value => change('distributionReminders', value)}/></div></section>
 
-          <div className="space-y-3">{['Gemini', 'OpenAI', 'Anthropic'].map(provider => <div key={provider} className="flex justify-between rounded-xl bg-krew-surface border border-krew-border p-3"><span className="text-sm text-white">{provider}</span><Badge variant="neutral" size="xs">Not Connected</Badge></div>)}</div>
-        </Card>
+    <section className="rounded-2xl bg-krew-surface p-5 sm:p-6"><GroupTitle icon={<Cpu/>} title="Integrations" hint="Provider connections are not active. No API key entry or secret storage is available here."/><div className="grid gap-2 sm:grid-cols-3">{providers.map(provider => <div key={provider} className="flex items-center justify-between gap-3 rounded-xl bg-krew-bg-secondary px-4 py-3"><span className="text-sm text-krew-text-primary">{provider}</span><Badge variant="neutral" size="xs">Not Connected · Reserved for Live Sprint</Badge></div>)}</div><p className="mt-3 text-xs text-krew-text-muted">AI provider connections and inference are reserved for the live hackathon sprint.</p></section>
 
-        {/* Card 2: Creator Studio Preferences */}
-        <Card padding="lg" className="space-y-5 bg-krew-card border-krew-border">
-          <div className="flex items-center gap-2 border-b border-krew-border/60 pb-3">
-            <Shield className="w-5 h-5 text-krew-cyan" />
-            <h3 className="font-display text-lg font-bold text-white">
-              Studio Governance & Security
-            </h3>
-          </div>
-
-          <div className="space-y-3">
-            <div className="p-3.5 rounded-xl bg-krew-surface border border-krew-border flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-white">Human-in-the-Loop Safeguard</p>
-                <p className="text-xs text-krew-text-muted">
-                  Require explicit creator sign-off before any content is marked distribution ready.
-                </p>
-              </div>
-              <Badge variant="emerald" size="xs">
-                MANDATORY (ON)
-              </Badge>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-krew-surface border border-krew-border flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-white">Creator DNA Memory Persistence</p>
-                <p className="text-xs text-krew-text-muted">
-                  Synchronize vocabulary rules and forbidden words across all 6 agent prompts.
-                </p>
-              </div>
-              <Badge variant="purple" size="xs">
-                ACTIVE
-              </Badge>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-krew-surface border border-krew-border flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-white">Local Asset Storage</p>
-                <p className="text-xs text-krew-text-muted">
-                  Keep raw media assets on local machine during pre-event prototyping.
-                </p>
-              </div>
-              <Badge variant="cyan" size="xs">
-                LOCAL MODE
-              </Badge>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-krew-bg border border-krew-border space-y-1 text-xs">
-            <span className="font-mono text-krew-lavender font-semibold block">
-              Hackathon Track Note:
-            </span>
-            <p className="text-krew-text-secondary leading-relaxed">
-              GeNarrative Clash 2026: Autonomous Creator Agents — Content Strategy & Distribution. 50% pre-event rule strictly respected.
-            </p>
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
+    <section className="rounded-2xl bg-krew-surface p-5 sm:p-6"><GroupTitle icon={<ShieldCheck/>} title="Account" hint="Session and safety information."/><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><p className="text-sm font-medium text-krew-text-primary">{demoMode ? 'Demo session' : 'Authenticated session'}</p><p className="mt-1 text-xs text-krew-text-muted">{demoMode ? 'Session state may be temporary.' : `Signed in as ${user?.email || 'creator'}.`}</p><p className="mt-2 text-xs text-krew-text-secondary">Human approval remains required. Automated publishing is unavailable.</p></div><Button variant="secondary" onClick={() => void logout()} leftIcon={<LogOut className="h-4 w-4"/>}>Sign out</Button></div></section>
+  </div>;
 };
 
+const GroupTitle: React.FC<{ icon: React.ReactElement; title: string; hint: string }> = ({ icon, title, hint }) => <div className="mb-5 flex items-start gap-3"><span className="mt-0.5 text-krew-lavender">{React.cloneElement(icon, { className: 'h-4 w-4' })}</span><div><h2 className="font-display text-lg font-semibold text-krew-text-primary">{title}</h2><p className="mt-1 text-xs text-krew-text-muted">{hint}</p></div></div>;
+const ReadOnly: React.FC<{ label: string; value: string }> = ({ label, value }) => <div className="rounded-xl bg-krew-bg-secondary px-4 py-3"><p className="text-[10px] text-krew-text-muted">{label}</p><p className="mt-1 truncate text-sm text-krew-text-primary">{value}</p></div>;
+const Toggle: React.FC<{ checked: boolean; onChange: (value: boolean) => void; label: string }> = ({ checked, onChange, label }) => <button type="button" role="switch" aria-checked={checked} aria-label={label} onClick={() => onChange(!checked)} className={`relative h-7 w-12 rounded-full transition-colors ${checked ? 'bg-krew-purple' : 'bg-krew-bg'}`}><span className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`}/></button>;
+const ToggleRow: React.FC<{ label: string; description: string; checked: boolean; onChange: (value: boolean) => void }> = ({ label, description, checked, onChange }) => <div className="flex items-center justify-between gap-4"><div><p className="text-sm font-medium text-krew-text-primary">{label}</p><p className="mt-1 text-xs text-krew-text-muted">{description}</p></div><Toggle checked={checked} onChange={onChange} label={label}/></div>;

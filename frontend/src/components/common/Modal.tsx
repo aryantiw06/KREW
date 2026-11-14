@@ -55,7 +55,7 @@ export const Modal: React.FC<ModalProps> = ({
       {/* Modal Dialog */}
       <div
         className={cn(
-          'relative w-full rounded-2xl bg-krew-card border border-krew-border p-6 shadow-2xl z-10 transition-all my-8 animate-in fade-in zoom-in-95 duration-200',
+          'relative my-8 max-h-[calc(100dvh-2rem)] w-full overflow-y-auto rounded-2xl bg-krew-card p-5 shadow-2xl z-10 transition-all sm:p-6 animate-in fade-in zoom-in-95 duration-200',
           maxWidthStyles[maxWidth]
         )}
         role="dialog"
@@ -77,6 +77,8 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
           <button
             onClick={onClose}
+            type="button"
+            aria-label="Close dialog"
             className="rounded-lg p-1.5 text-krew-text-muted hover:text-white hover:bg-white/5 transition-colors"
           >
             <X className="w-5 h-5" />

@@ -34,27 +34,27 @@ export const LandingPage: React.FC = () => {
     {
       icon: <Dna className="w-6 h-6 text-krew-purple" />,
       title: 'Creator DNA Memory Engine',
-      description: 'A shared persistent memory of your authentic tone, signature phrases, banned words, audience archetype, and brand aesthetic across all agents.'
+      description: 'A creator profile for tone, signature phrases, audience context, and visual identity. Live agent access is reserved for the hackathon sprint.'
     },
     {
       icon: <Scissors className="w-6 h-6 text-rose-400" />,
       title: 'Context-Aware Viral Intelligence',
-      description: 'Identifies high-impact video highlights based on emotional narrative beats and punchline self-sufficiency, not arbitrary time splices.'
+      description: 'A planned review workspace for narrative moments and clip metadata. Real video analysis is reserved for the hackathon sprint.'
     },
     {
       icon: <BrainCircuit className="w-6 h-6 text-krew-cyan" />,
       title: 'Collaborative Multi-Agent Workforce',
-      description: 'Autonomous peer-to-peer handoffs. The Director briefs the Writer, who prompts the Editor, who feeds keyframes to the Cinematographer.'
+      description: 'Illustrative role contracts map how a production crew could hand work between specialists. Autonomous execution is reserved for the hackathon sprint.'
     },
     {
       icon: <ImageIcon className="w-6 h-6 text-amber-400" />,
       title: 'Thumbnail Intelligence Lab',
-      description: 'Generates and tests contrasting visual compositions, simulating mobile feed contrast, eye-tracking hierarchy, and headline readability.'
+      description: 'Compare illustrative composition concepts against your Creator DNA. Live image generation and testing are reserved for the hackathon sprint.'
     },
     {
       icon: <TrendingUp className="w-6 h-6 text-purple-400" />,
       title: 'Self-Improving Content Intelligence',
-      description: 'Post-launch performance data directly feeds back into your Creator DNA, sharpening future topic research, hook angles, and retention curves.'
+      description: 'Explore clearly labeled sample analytics. Live account data and automated feedback are reserved for the hackathon sprint.'
     },
     {
       icon: <ShieldCheck className="w-6 h-6 text-emerald-400" />,
@@ -72,17 +72,17 @@ export const LandingPage: React.FC = () => {
     {
       step: '02',
       title: 'KREW UNDERSTANDS THE VISION',
-      desc: 'The Director reads your Creator DNA memory to establish strategic narrative angles.'
+      desc: 'Planned: the Director role uses Creator DNA context to shape strategic narrative angles.'
     },
     {
       step: '03',
       title: 'SPECIALISED AGENTS COLLABORATE',
-      desc: 'The Writer scripts hooks, the Editor extracts contextual moments, and the Cinematographer designs thumbnails.'
+      desc: 'Planned role contracts cover scripts, clip review, and visual composition; live agent execution is reserved for the hackathon sprint.'
     },
     {
       step: '04',
       title: 'CONTENT CAMPAIGN IS PREPARED',
-      desc: 'The Publicist shapes platform-native copy and scheduling for YouTube, Instagram, LinkedIn, and Facebook.'
+      desc: 'Draft platform-specific copy and review a suggested schedule. Direct publishing is reserved for the hackathon sprint.'
     },
     {
       step: '05',
@@ -113,7 +113,7 @@ export const LandingPage: React.FC = () => {
         </p>
 
         <p className="text-sm sm:text-base text-krew-text-secondary max-w-2xl mx-auto leading-relaxed mb-10">
-          Meet your autonomous AI production crew. From content strategy and scripts to video intelligence, thumbnails and distribution — your entire creative operation, united in one workspace.
+          Meet the planned production crew. Explore role contracts and creator workspaces for strategy, scripts, clip review, visual concepts, and distribution planning.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
@@ -179,7 +179,7 @@ export const LandingPage: React.FC = () => {
                   THE CREW (6 SPECIALISED AGENTS)
                 </span>
                 <span className="text-[10px] font-mono text-krew-text-muted">
-                  Autonomous Collaboration
+                  Illustrative role map
                 </span>
               </div>
 
@@ -264,7 +264,7 @@ export const LandingPage: React.FC = () => {
             Meet the Crew Behind Every Great Creator.
           </h2>
           <p className="text-base sm:text-lg text-krew-text-secondary leading-relaxed">
-            Six specialised AI roles that operate as a cohesive workforce behind the scenes, bound together by your Creator DNA Memory Engine.
+            Six specialised role contracts designed around your Creator DNA. Autonomous agent collaboration is reserved for the live hackathon sprint.
           </p>
         </div>
 
@@ -457,7 +457,7 @@ export const LandingPage: React.FC = () => {
             Ready for Your Next Big Production?
           </h2>
           <p className="text-base sm:text-lg text-krew-lavender max-w-xl mx-auto mb-8">
-            Stop managing six tools. Step into your unified autonomous production studio.
+            Bring your vision into one cinematic production workspace. Live agent execution remains reserved for the hackathon sprint.
           </p>
           <Link to="/dashboard">
             <Button
