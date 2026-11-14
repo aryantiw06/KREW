@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="frontend/public/favicon.svg" width="72" alt="KREW logo" />
-
 # KREW
+
+<img src="docs/assets/krew-hero.png" width="100%" alt="KREW — Your Vision. Our Crew." />
 
 ### Your Vision. Our Crew.
 
@@ -13,6 +13,7 @@
 GeNarrative Clash 2026 · Track: Autonomous Creator Agents — Content Strategy & Distribution
 
 </div>
+
 
 <br />
 
